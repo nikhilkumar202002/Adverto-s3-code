@@ -1,0 +1,85 @@
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #0000ff;
+  pointer-events: auto;
+  will-change: opacity;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  background-color: #0000ff;
+  opacity: 1;
+  will-change: opacity;
+}
+
+/* Centered container keeping fixed logo proportions */
+.logoGroup {
+  position: relative;
+  width: clamp(230px, 22vw, 290px);
+  height: clamp(230px, 22vw, 290px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+/* Crisp rectangular bar centered in the wrapper */
+.rectangle {
+  position: absolute;
+  width: 170px;
+  height: 234px;
+  background-color: #f7f1df;
+  border-radius: 0px; /* 100% sharp 90-degree corners */
+  clip-path: polygon(0 0, 34% 0, 100% 100%, 66% 100%);
+  opacity: 0;
+  z-index: 2;
+  backface-visibility: hidden;
+  will-change: opacity, transform;
+}
+
+/* Circle centered in the wrapper (GSAP moves it to the flank) */
+.circle {
+  position: absolute;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  background-color: #f7f1df;
+  opacity: 0;
+  z-index: 1;
+  backface-visibility: hidden;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader,
+  .background,
+  .logoGroup,
+  .rectangle,
+  .circle {
+    will-change: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .logoGroup {
+    width: 168px;
+    height: 168px;
+  }
+
+  .rectangle {
+    width: 99px;
+    height: 136px;
+  }
+
+  .circle {
+    width: 86px;
+    height: 86px;
+  }
+}

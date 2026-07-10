@@ -1,0 +1,268 @@
+/* Imports */
+@import "tailwindcss";
+
+/* Font Faces */
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-Thin.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-Light.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-Medium.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-Bold.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-ExtraBold.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-Black.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-RegularItalic.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "CreatoDisplay";
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/CreatoDisplay-BoldItalic.otf") format("opentype");
+}
+
+/* CSS Variables */
+:root {
+  --primary: #0000ff;
+  --primary-light: #3b82ff;
+  --primary-dark: #0000cc;
+  --background: #000000;
+  --foreground: #ffffff;
+  --muted: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.12);
+  --site-radius: 0px;
+}
+
+/* Global Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Base Elements */
+html {
+  cursor: none;
+  font-family: "CreatoDisplay", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+:where(
+  :is(article, figure, input, select, textarea, iframe, video):not([class*="rounded"]),
+  img:not([src$=".svg"]):not([class*="rounded"]):not([class*="w-auto"]),
+  :is([class*="border"][class*="bg-"], [class*="overflow-hidden"][class*="bg-"]):not([class*="rounded"])
+) {
+  border-radius: var(--site-radius);
+}
+
+:where(
+  :is(article, figure):not([class*="rounded"]),
+  :is([class*="border"][class*="bg-"], [class*="overflow-hidden"][class*="bg-"]):not([class*="rounded"])
+) {
+  overflow: hidden;
+}
+
+/* Lenis Styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch],
+.lenis [data-lenis-prevent-vertical],
+.lenis [data-lenis-prevent-horizontal] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+.lenis.lenis-autoToggle {
+  transition-property: overflow;
+  transition-duration: 1ms;
+  transition-behavior: allow-discrete;
+}
+
+/* Utilities */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animations */
+@keyframes about-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.about-reveal-up {
+  animation: about-reveal-up 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform, filter;
+}
+
+.about-reveal-up-delay {
+  animation-delay: 260ms;
+}
+
+/* Responsive Rules */
+@media (min-width: 1024px) and (max-width: 1300px) {
+  .section-breakpoint-heading {
+    font-size: 56px !important;
+    line-height: 1 !important;
+  }
+}
+
+/* Component-specific Styles */
+.portfolio-single-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.portfolio-header-left,
+.portfolio-header-right {
+  width: 100%;
+}
+
+.portfolio-page-heading {
+  color: #EDEDED;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 0.9;
+  margin: 0;
+}
+
+.portfolio-page-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+  .portfolio-page-heading {
+    font-size: 84px;
+  }
+
+  .portfolio-page-description {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 720px) {
+  .portfolio-single-header {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 32px;
+  }
+
+  .portfolio-header-left {
+    width: 66.6667%;
+  }
+
+  .portfolio-header-right {
+    width: 33.3333%;
+  }
+}
+
+@media (min-width: 720px) and (max-width: 1300px) {
+  .portfolio-page-heading {
+    font-size: 65px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .portfolio-page-heading {
+    font-size: 110px;
+  }
+}

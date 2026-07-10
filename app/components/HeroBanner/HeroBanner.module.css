@@ -1,0 +1,245 @@
+/* ═══════════════════════════════════════════════════════════════
+   HeroBanner.module.css
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Shell ──────────────────────────────────────────────────────── */
+.banner {
+  position: relative;
+  width: 100%;
+  height: calc(100vh + (var(--banner-steps) * 64vh));
+  min-height: 100vh;
+  background: #050505;
+}
+
+.bannerFrame {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  background: #050505;
+}
+
+/* ── Photo layer ────────────────────────────────────────────────── */
+.photo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.photoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  -webkit-user-drag: none;
+}
+
+/* ── Grain ──────────────────────────────────────────────────────── */
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.bannerFrame::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  height: clamp(140px, 24vw, 340px);
+  background: linear-gradient(0deg, #050505 0%, rgba(5, 5, 5, 0.78) 34%, rgba(5, 5, 5, 0) 100%);
+  pointer-events: none;
+}
+
+/* ── Rotating words ─────────────────────────────────────────────── */
+.rotatorContent {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.wordWheel {
+  position: relative;
+  width: min(82vw, 840px);
+  height: clamp(280px, 34vw, 520px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  opacity: 0;
+  perspective: 900px;
+  transform-style: preserve-3d;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 22%,
+    #000 78%,
+    transparent 100%
+  );
+  will-change: transform, opacity;
+}
+
+.wheelWord {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  translate: -50% -50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "CreatoDisplay", sans-serif;
+  font-size: clamp(88px, 12vw, 170px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -7px;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 16px 48px rgba(0, 0, 0, 0.58);
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.wordText {
+  display: inline-block;
+  margin-inline: auto;
+  font-kerning: normal;
+  transform: none;
+  transform-origin: center;
+}
+
+.wordText::after {
+  content: ".";
+  font-style: normal;
+  font-weight: 600;
+}
+
+.italicLead {
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* ── Scroll arrow ───────────────────────────────────────────────── */
+.scrollArrow {
+  position: absolute;
+  bottom: clamp(24px, 4vh, 44px);
+  right: clamp(24px, 4vw, 56px);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.arrowTrack {
+  width: 1px;
+  height: 60px;
+  background: rgba(240, 236, 227, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.arrowDot {
+  width: 1px;
+  height: 30px;
+  background: rgba(200, 169, 110, 0.8);
+  position: absolute;
+  top: -30px;
+  animation: arrowSlide 1.8s ease-in-out infinite;
+}
+
+@keyframes arrowSlide {
+  0%   { top: -30px; opacity: 0; }
+  30%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { top: 60px;  opacity: 0; }
+}
+
+.arrowLabel {
+  font-family: "CreatoDisplay", sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(240, 236, 227, 0.25);
+  writing-mode: vertical-rl;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .banner {
+    height: calc(100vh + (var(--banner-steps) * 38vh));
+    min-height: 100vh;
+  }
+
+  .bannerFrame {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .wordWheel {
+    width: 92vw;
+    height: clamp(220px, 42svh, 320px);
+  }
+
+  .wheelWord {
+    font-size: clamp(64px, 18vw, 108px);
+    letter-spacing: -3px;
+  }
+
+  .scrollArrow {
+    right: 18px;
+    bottom: 22px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .banner {
+    height: calc(100vh + (var(--banner-steps) * 46vh));
+    min-height: 100vh;
+  }
+
+  .bannerFrame {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .wordWheel {
+    width: 88vw;
+    height: clamp(280px, 36vh, 420px);
+  }
+
+  .wheelWord {
+    font-size: clamp(88px, 12vw, 136px);
+  }
+}
+
+@media (max-width: 480px) {
+  .banner {
+    height: calc(100vh + (var(--banner-steps) * 34vh));
+    min-height: 100vh;
+  }
+
+  .wheelWord {
+    font-size: clamp(56px, 17vw, 84px);
+    letter-spacing: -2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrowDot {
+    animation: none;
+  }
+}

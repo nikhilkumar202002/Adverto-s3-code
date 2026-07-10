@@ -1,0 +1,43 @@
+.servicesHeading {
+  font-size: clamp(36px, 11vw, 45px);
+}
+
+.servicesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .servicesHeading {
+    font-size: clamp(50px, 6.4vw, 60px);
+  }
+
+  .servicesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .servicesHeading {
+    font-size: 65px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1100px) {
+  .servicesHeading {
+    font-size: 56px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1300px) {
+  .servicesHeading {
+    font-size: 56px;
+    line-height: 1;
+  }
+}
+
+@media (min-width: 1240px) {
+  .servicesGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,146 @@
+.banner {
+  --cookie-banner-gutter: 20px;
+
+  position: fixed;
+  bottom: 24px;
+  left: var(--cookie-banner-gutter);
+  z-index: 10000;
+  width: min(420px, calc(100vw - (var(--cookie-banner-gutter) * 2)));
+  height: auto;
+  padding: 22px;
+  color: #fff;
+  background: rgba(0, 0, 255, 0.88);
+  border: 1px solid #ffffff15;
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 120, 0.48);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  cursor: auto !important;
+}
+
+@media (min-width: 640px) {
+  .banner {
+    --cookie-banner-gutter: 24px;
+  }
+}
+
+@media (min-width: 768px) {
+  .banner {
+    --cookie-banner-gutter: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .banner {
+    --cookie-banner-gutter: 60px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .banner {
+    --cookie-banner-gutter: 80px;
+  }
+}
+
+.banner * {
+  cursor: auto !important;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  font-size: 18px;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+.copy {
+  margin: 0 0 18px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer !important;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease,
+    transform 220ms ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.primary {
+  color: #000;
+  background: #fff;
+}
+
+.secondary {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.textButton {
+  color: rgba(255, 255, 255, 0.86);
+  background: transparent;
+}
+
+.textButton:hover {
+  color: #fff;
+}
+
+@media (max-width: 520px) {
+  .banner {
+    right: var(--cookie-banner-gutter);
+    width: auto;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
+}

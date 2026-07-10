@@ -1,0 +1,738 @@
+/* ═══════════════════════════════════════════════════════════════
+   TeamSection.module.css  –  v2
+   3:4 ratio cards · one-card-at-a-time · dark luxury
+   ═══════════════════════════════════════════════════════════════ */
+
+
+
+/* ── Section shell ──────────────────────────────────────────────── */
+.section {
+  --bg:           #060606;
+  --text-hi:      #f0ece3;
+  --text-lo:      rgba(240, 236, 227, 0.38);
+  --text-muted:   rgba(240, 236, 227, 0.18);
+  --border:       rgba(255, 255, 255, 0.06);
+  --accent:       #0000FF;
+  --accent-light: #3b82ff;
+  --card-w:       clamp(170px, 15vw, 300px);
+  --card-h:       auto;
+  --card-radius:  20px;
+  position:   relative;
+  width:      100%;
+  background: var(--bg);
+  overflow:   hidden;
+}
+
+/* ── Noise overlay ──────────────────────────────────────────────── */
+.sectionNoise {
+  display: none;
+}
+
+/* ── Ambient orbs ───────────────────────────────────────────────── */
+.orb {
+  display: none;
+}
+
+.orb[data-orb="1"] {
+  width:      700px;
+  height:     700px;
+  top:        -20%;
+  left:       -18%;
+  background: radial-gradient(circle, rgba(0, 0, 255, 0.07) 0%, transparent 70%);
+  animation:  orbA 20s ease-in-out infinite alternate;
+}
+
+.orb[data-orb="2"] {
+  width:      500px;
+  height:     500px;
+  bottom:     -12%;
+  right:      -10%;
+  background: radial-gradient(circle, rgba(110, 142, 200, 0.06) 0%, transparent 70%);
+  animation:  orbB 24s ease-in-out infinite alternate;
+}
+
+@keyframes orbA {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(70px, 50px) scale(1.12); }
+}
+@keyframes orbB {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-60px, -40px) scale(1.1); }
+}
+
+/* ── Sticky viewport ────────────────────────────────────────────── */
+.sticky {
+  position:        relative;
+  width:           100%;
+  height:          100svh;
+  min-height:      600px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  overflow:        hidden;
+  z-index:         1;
+  perspective:     100vh;
+  perspective-origin: 50% 48%;
+  transform-style: preserve-3d;
+}
+
+/* ── Section header ─────────────────────────────────────────────── */
+.sectionHead {
+  position:  absolute;
+  inset:     0;
+  z-index:   30;
+  display:   flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding:   0 clamp(22px, 5vw, 72px);
+  text-align: center;
+  pointer-events: none;
+}
+
+.eyebrow {
+  display:       block;
+  font-family:   "CreatoDisplay", sans-serif;
+  font-size:     clamp(8px, 0.75vw, 10px);
+  font-weight:   700;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color:         var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  font-family:   "CreatoDisplay", sans-serif;
+  font-size:     clamp(44px, 7.8vw, 112px);
+  font-weight:   700;
+  line-height:   1.02;
+  color:         var(--text-hi);
+  margin:        0;
+  letter-spacing: 0;
+}
+
+.sectionTitle em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+/* ── Card deck container ─────────────────────────────────────────── */
+.deck {
+  position:   absolute;
+  inset:      0;
+  width:      100%;
+  height:     100%;
+  z-index:    10;
+  perspective: 100vh;
+  perspective-origin: 50% 48%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CARD  (3 : 4 portrait ratio)
+   ══════════════════════════════════════════════════════════════════ */
+.card {
+  width:    var(--card-w);
+  height:   auto;
+  top:      var(--card-top);
+  left:     var(--card-left);
+
+  border-radius: var(--card-radius);
+  overflow:      visible;
+  cursor:        default;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  contain:      layout;
+  will-change: transform, opacity;
+  box-shadow: none;
+  transition: none;
+}
+
+.card:hover {
+  box-shadow: none;
+}
+
+/* ── Noise per card ─────────────────────────────────────────────── */
+.featuredCard {
+  --card-w: clamp(170px, 15vw, 300px);
+}
+
+.visibleStart {
+  --card-w: clamp(220px, 18vw, 360px);
+  opacity: 1;
+}
+
+.cardNoise {
+  position:    absolute;
+  inset:       0;
+  z-index:     10;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  background-size:  200px 200px;
+  mix-blend-mode:   overlay;
+  pointer-events:   none;
+}
+
+/* ── Accent glow bloom ──────────────────────────────────────────── */
+.cardBloom {
+  position:    absolute;
+  inset:       0;
+  z-index:     3;
+  background:  radial-gradient(
+    ellipse 80% 50% at 50% 110%,
+    color-mix(in srgb, var(--accent) 20%, transparent),
+    transparent 65%
+  );
+  pointer-events: none;
+  opacity:     0;
+  transition:  opacity 0.65s ease;
+}
+
+.cardHovered .cardBloom {
+  opacity: 1;
+}
+
+/* ── Image wrapper ──────────────────────────────────────────────── */
+.imageWrap {
+  position: relative;
+  z-index:  1;
+  width: 100%;
+  height: auto;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+/* Inner layer for mouse parallax (gsap.set targets this) */
+.imageParallaxInner {
+  width:    100%;
+  height:   auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.image {
+  width:          100%;
+  height:         auto;
+  max-width:      none;
+  max-height:     none;
+  object-fit:     initial;
+  object-position: center center;
+  filter:         grayscale(1) brightness(0.92);
+  display:        block;
+  border-radius:  inherit;
+  -webkit-user-drag: none;
+}
+
+.card:hover .image {
+  transform: none;
+}
+
+.memberMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-top: 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.88);
+  pointer-events: none;
+}
+
+.memberName {
+  font-family: "CreatoDisplay", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.memberDivider {
+  display: block;
+  width: 34px;
+  height: 1px;
+  background: #0000ff;
+  opacity: 0.9;
+}
+
+.memberRole {
+  font-family: "CreatoDisplay", sans-serif;
+  max-width: 18em;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ── Vignette gradient over photo ───────────────────────────────── */
+.imageVignette {
+  display: none;
+}
+
+/* ── Card body (content overlay) ───────────────────────────────── */
+.cardBody {
+  position:    absolute;
+  inset:       0;
+  z-index:     5;
+  display:     flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding:     clamp(18px, 3vw, 30px);
+}
+
+/* ── Top-right index number ─────────────────────────────────────── */
+.cardIndex {
+  align-self:    flex-end;
+  font-family:   "CreatoDisplay", sans-serif;
+  font-size:     clamp(10px, 0.9vw, 13px);
+  font-weight:   700;
+  letter-spacing: 0.14em;
+  color:         rgba(255, 255, 255, 0.18);
+  transition:    color 0.4s ease;
+}
+
+.cardHovered .cardIndex {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Footer (name + role) ───────────────────────────────────────── */
+.cardFooter {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+}
+
+.cardTagline {
+  font-family:    "CreatoDisplay", sans-serif;
+  font-size:      clamp(8px, 0.7vw, 10px);
+  font-weight:    600;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color:          var(--accent);
+  opacity:        0.75;
+  transform:      translateY(5px);
+  transition:     transform 0.5s ease, opacity 0.5s ease;
+}
+
+.card:hover .cardTagline {
+  transform: translateY(0);
+  opacity:   1;
+}
+
+/* Name with animated underline */
+.cardNameWrap {
+  position:   relative;
+  display:    inline-block;
+}
+
+.cardName {
+  font-family:    "CreatoDisplay", sans-serif;
+  font-size:      clamp(28px, 3.1vw, 48px);
+  font-weight:    400;
+  line-height:    1;
+  color:          var(--text-hi);
+  margin:         0;
+  letter-spacing: -0.01em;
+  transform:      translateY(8px);
+  transition:     transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover .cardName {
+  transform: translateY(0);
+}
+
+.cardNameUnderline {
+  position:        absolute;
+  bottom:          -4px;
+  left:            0;
+  height:          2px;
+  width:           100%;
+  background:      var(--accent);
+  transform:       scaleX(0);
+  transform-origin: left;
+  transition:      transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s;
+  opacity:         1;
+}
+
+.card:hover .cardNameUnderline {
+  transform: scaleX(1);
+}
+
+/* Role row */
+.cardRoleRow {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  transform:   translateY(6px);
+  transition:  transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.06s;
+}
+
+.card:hover .cardRoleRow {
+  transform: translateY(0);
+}
+
+.cardRoleDot {
+  width:         5px;
+  height:        5px;
+  border-radius: 50%;
+  flex-shrink:   0;
+  opacity:       0.8;
+}
+
+.cardRole {
+  font-family:    "CreatoDisplay", sans-serif;
+  font-size:      clamp(9px, 0.72vw, 11px);
+  font-weight:    500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color:          var(--text-lo);
+  margin:         0;
+}
+
+/* ── Card rim (subtle border) ───────────────────────────────────── */
+.cardRim {
+  position:      absolute;
+  inset:         0;
+  z-index:       8;
+  border-radius: var(--card-radius);
+  border:        1px solid rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+  transition:    border-color 0.45s ease;
+}
+
+.cardHovered .cardRim {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PROGRESS DOTS
+   ══════════════════════════════════════════════════════════════════ */
+.dots {
+  position:  absolute;
+  bottom:    clamp(22px, 3.5vh, 40px);
+  left:      50%;
+  transform: translateX(-50%);
+  display:   flex;
+  gap:       8px;
+  z-index:   20;
+}
+
+.dot {
+  width:         6px;
+  height:        6px;
+  border-radius: 50%;
+  background:    rgba(240, 236, 227, 0.18);
+  transition:    width 0.35s ease, background 0.35s ease, border-radius 0.35s ease;
+}
+
+.dotActive {
+  width:         22px;
+  border-radius: 3px;
+  background:    var(--accent);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SCROLL CUE
+   ══════════════════════════════════════════════════════════════════ */
+.scrollCue {
+  position:  absolute;
+  bottom:    clamp(22px, 3.5vh, 40px);
+  right:     clamp(22px, 4vw, 52px);
+  z-index:   20;
+  display:   flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:       6px;
+  opacity:   0.35;
+}
+
+.scrollCueLine {
+  width:     1px;
+  height:    48px;
+  background: rgba(240, 236, 227, 0.2);
+  position:  relative;
+  overflow:  hidden;
+}
+
+.scrollCueLine::after {
+  content:   "";
+  position:  absolute;
+  top:       -48px;
+  left:      0;
+  width:     1px;
+  height:    48px;
+  background: var(--accent);
+  animation: scrollDrop 2s ease-in-out infinite;
+}
+
+@keyframes scrollDrop {
+  0%   { top: -48px; opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { top:  48px; opacity: 0; }
+}
+
+.scrollCueText {
+  font-family:    "CreatoDisplay", sans-serif;
+  font-size:      8px;
+  font-weight:    600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color:          var(--text-lo);
+  writing-mode:   vertical-rl;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PROJECTS TEXT FADE UP
+   ══════════════════════════════════════════════════════════════════ */
+.projectsText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 80;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.projectsBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at center, rgba(72, 88, 255, 0.22), rgba(0, 0, 255, 0.12) 30%, rgba(0, 0, 0, 0) 58%),
+    radial-gradient(circle at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.16) 54%, rgba(0, 0, 0, 0.72) 100%),
+    #020208;
+}
+
+.projectsHeading {
+  position: relative;
+  z-index: 2;
+  font-family: "CreatoDisplay", sans-serif;
+  font-size: clamp(40px, 6.5vw, 96px);
+  font-weight: 600;
+  line-height: 0.9;
+  color: var(--text-hi);
+  max-width: min(90vw, 600px);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.projectsHeading em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.projectsDescription {
+  font-family: "CreatoDisplay", sans-serif;
+  font-size: clamp(16px, 2vw, 24px);
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--text-lo);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .section {
+    --card-w: min(62vw, 260px);
+    overflow: hidden;
+  }
+
+  .sticky {
+    height: 100svh;
+    min-height: 560px;
+    display: flex;
+    overflow: hidden;
+    padding: 0;
+    perspective: 100vh;
+    perspective-origin: 50% 48%;
+    transform-style: preserve-3d;
+  }
+
+  .deck {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: 0;
+    perspective: 100vh;
+    perspective-origin: 50% 48%;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .card {
+    position: absolute;
+    top: var(--mobile-card-top);
+    left: var(--mobile-card-left);
+    border-radius: 0;
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+    contain: layout;
+  }
+
+  .featuredCard {
+    --card-w: min(62vw, 260px);
+  }
+
+  .visibleStart {
+    --card-w: min(62vw, 260px);
+  }
+
+  .imageWrap {
+    aspect-ratio: 4 / 5;
+    background: #111;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    clip-path: inset(0 round var(--card-radius));
+    transform: translateZ(0);
+  }
+
+  .imageParallaxInner,
+  .image {
+    height: 100%;
+    border-radius: var(--card-radius);
+  }
+
+  .image {
+    object-fit: cover;
+  }
+
+  .cardBody {
+    padding: 16px;
+  }
+
+  .cardName {
+    font-size: clamp(22px, 7.4vw, 34px);
+  }
+
+  .cardRole {
+    max-width: 100%;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    line-height: 1.25;
+  }
+
+  .cardTagline {
+    font-size: 7px;
+    letter-spacing: 0.2em;
+  }
+
+  .memberMeta {
+    padding-top: 10px;
+    gap: 5px;
+  }
+
+  .memberName {
+    font-size: 15px;
+  }
+
+  .memberDivider {
+    width: 28px;
+  }
+
+  .memberRole {
+    max-width: 15em;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  .sectionHead {
+    padding: 0 18px;
+  }
+
+  .scrollCue {
+    display: none;
+  }
+
+  .projectsText {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .section {
+    --card-w: clamp(180px, 22vw, 245px);
+  }
+
+  .sticky {
+    min-height: 700px;
+    perspective-origin: 50% 46%;
+  }
+
+  .visibleStart {
+    --card-w: clamp(220px, 27vw, 300px);
+  }
+
+  .memberName {
+    font-size: 18px;
+  }
+
+  .memberRole {
+    font-size: 13px;
+    max-width: 16em;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    --card-w: min(64vw, 230px);
+  }
+
+  .featuredCard {
+    --card-w: min(64vw, 230px);
+  }
+
+  .visibleStart {
+    --card-w: min(64vw, 230px);
+  }
+
+  .sticky {
+    min-height: 540px;
+  }
+
+  .projectsHeading {
+    font-size: clamp(38px, 13vw, 62px);
+    line-height: 0.98;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .image,
+  .cardName,
+  .cardRole,
+  .cardTagline,
+  .cardNameUnderline,
+  .orb {
+    animation:  none !important;
+    transition: none !important;
+  }
+
+  .scrollCueLine::after {
+    animation: none !important;
+  }
+}
