@@ -136,6 +136,14 @@ export const readScrollSnapshot = (key: string | null) => {
   return readStore()[key] ?? null;
 };
 
+export const hasSnapshotForCurrentHistoryEntry = () => {
+  if (!isBrowser()) return false;
+
+  const snapshot = readScrollSnapshot(getHistoryScrollKey());
+  const url = `${window.location.pathname}${window.location.search}`;
+  return snapshot?.url === url;
+};
+
 const animationDurationMs = (track: HTMLElement) => {
   const raw = window.getComputedStyle(track).animationDuration.split(",")[0]?.trim();
   if (!raw) return 0;

@@ -113,6 +113,7 @@ export default function PortfolioPageContent({
             >
               <Link
                 href={`${worksIndexPath}/${project.slug}`}
+                scroll
                 data-scroll-card-id={`portfolio-${project.slug}`}
                 data-works-project={project.slug}
                 className="group relative block overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A] [contain:layout_paint_style]"

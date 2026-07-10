@@ -31,11 +31,16 @@ export default function NavigationRestoration() {
     activeUrl.current = currentUrl();
 
     const pending = pendingTraversal;
-    if (!pending || pending.key !== key || pending.url !== currentUrl()) return;
-
-    pendingTraversal = null;
     const snapshot = readScrollSnapshot(key);
     if (!snapshot || snapshot.url !== currentUrl()) return;
+
+    // The destination history entry is the source of truth. Next may commit a
+    // route before application popstate listeners run on the first traversal,
+    // so requiring pendingTraversal here creates a first-Back race. Fresh push
+    // entries receive a new key and have no matching snapshot.
+    if (pending?.key === key && pending.url === currentUrl()) {
+      pendingTraversal = null;
+    }
 
     return restoreScrollSnapshot(snapshot);
   }, [pathname, searchParams]);
