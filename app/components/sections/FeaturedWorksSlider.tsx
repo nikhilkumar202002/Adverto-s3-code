@@ -48,12 +48,12 @@ export default function FeaturedWorksSlider({
               waitForPageTransition={waitForPageTransition}
             />
           </div>
-          <Link
+          {/* <Link
             href="/portfolio"
             className="hidden border-b border-white/25 pb-1 text-[13px] uppercase tracking-[0.16em] text-white/70 transition-colors hover:border-white hover:text-white md:inline-flex"
           >
             View all work
-          </Link>
+          </Link> */}
         </div>
       </Reveal>
 
@@ -101,7 +101,7 @@ export default function FeaturedWorksSlider({
                     data-scroll-card-id={`project-${project.slug}`}
                     data-scroll-slider-card-id={`project-${project.slug}`}
                     data-about-featured-project={project.slug}
-                    className="featured-work-card group relative mx-2 h-[360px] w-[280px] shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A] transition-colors duration-300 hover:border-[#0000FF]/70 md:h-[460px] md:w-[380px]"
+                    className="featured-work-card group relative mx-2 aspect-[4/3] w-[300px] shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A] transition-colors duration-300 hover:border-[#0000FF]/70 sm:w-[360px] md:w-[460px]"
                   >
                     <Image
                       src={project.portfolioImage ?? project.heroImage}
@@ -110,7 +110,7 @@ export default function FeaturedWorksSlider({
                       loading="lazy"
                       quality={72}
                       decoding="async"
-                      sizes="(max-width: 768px) 280px, 380px"
+                      sizes="(max-width: 640px) 300px, (max-width: 768px) 360px, 460px"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -119,6 +119,17 @@ export default function FeaturedWorksSlider({
               </div>
             ))}
           </div>
+        </div>
+      </Reveal>
+
+      <Reveal waitForPageTransition={waitForPageTransition} amount={0.1} y={24}>
+        <div className="mt-10 flex justify-center px-6 md:mt-12">
+          <Link
+            href="/portfolio"
+            className="inline-flex items-center justify-center rounded-full border border-white/20 px-7 py-3 text-[12px] font-medium uppercase tracking-[0.16em] text-white transition-colors duration-300 hover:border-[#0000FF] hover:bg-[#0000FF]"
+          >
+            View all work
+          </Link>
         </div>
       </Reveal>
     </section>
