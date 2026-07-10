@@ -6,6 +6,28 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export default function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
+    const useNativeTouchScroll = window.matchMedia(
+      "(max-width: 767px), (pointer: coarse), (prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (useNativeTouchScroll) {
+      const handleNativeScrollTo = (event: Event) => {
+        const { left = 0, top = 0, behavior = "auto" } =
+          (event as CustomEvent<{
+            left?: number;
+            top?: number;
+            behavior?: ScrollBehavior;
+          }>).detail ?? {};
+
+        window.scrollTo({ left, top, behavior });
+      };
+
+      window.addEventListener("adverto:scroll-to", handleNativeScrollTo);
+      return () => {
+        window.removeEventListener("adverto:scroll-to", handleNativeScrollTo);
+      };
+    }
+
     const lenis = new Lenis({
       autoRaf: true,
       anchors: true,

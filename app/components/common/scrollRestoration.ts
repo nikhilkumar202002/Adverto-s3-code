@@ -188,6 +188,19 @@ export const restoreScrollSnapshot = (
   const startedAt = performance.now();
   const timeoutMs = 2000;
 
+  const removeUserIntentListeners = () => {
+    window.removeEventListener("touchstart", cancelForUserIntent);
+    window.removeEventListener("wheel", cancelForUserIntent);
+    window.removeEventListener("pointerdown", cancelForUserIntent);
+    window.removeEventListener("keydown", cancelForUserIntent);
+  };
+
+  const cancelForUserIntent = () => {
+    cancelled = true;
+    window.cancelAnimationFrame(frameId);
+    removeUserIntentListeners();
+  };
+
   const apply = () => {
     restoreSliderSnapshots(snapshot);
     window.dispatchEvent(
@@ -199,6 +212,10 @@ export const restoreScrollSnapshot = (
   };
 
   apply();
+  window.addEventListener("touchstart", cancelForUserIntent, { passive: true });
+  window.addEventListener("wheel", cancelForUserIntent, { passive: true });
+  window.addEventListener("pointerdown", cancelForUserIntent, { passive: true });
+  window.addEventListener("keydown", cancelForUserIntent);
 
   const check = () => {
     if (cancelled) return;
@@ -212,10 +229,13 @@ export const restoreScrollSnapshot = (
       : 0;
     previousHeight = height;
 
-    if (!atTarget || !heightStable) apply();
+    // Correct only actual layout movement. Reapplying because the user moved
+    // away from the target makes touch scrolling feel locked on mobile.
+    if (!heightStable) apply();
 
     if (stableFrames >= 3 || performance.now() - startedAt >= timeoutMs) {
       apply();
+      removeUserIntentListeners();
       onStable?.();
       return;
     }
@@ -228,6 +248,7 @@ export const restoreScrollSnapshot = (
   return () => {
     cancelled = true;
     window.cancelAnimationFrame(frameId);
+    removeUserIntentListeners();
   };
 };
 

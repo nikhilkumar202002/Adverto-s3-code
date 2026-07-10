@@ -400,7 +400,7 @@ export const s3PortfolioProjects = {
     yujaGalleryImages,
   ),
   "summer-slate": s3PortfolioProject(
-    "/case-studies/SUMMER_SLATE/Cover/cover.webp",
+    "/case-studies/SUMMER_SLATE/Cover/cover (1).webp",
     summerSlateGalleryImages,
   ),
   ziva: s3PortfolioProject(
@@ -416,7 +416,7 @@ export const s3PortfolioProjects = {
     arabSeasonGalleryImages,
   ),
   beru: s3PortfolioProject(
-    "/case-studies/BERU/Cover/cover-copy.webp",
+    "/case-studies/BERU/Cover/cover.webp",
     beruGalleryImages,
   ),
   darex: s3PortfolioProject(

@@ -41,6 +41,13 @@ export default function HeroBanner() {
         visibility: "visible",
       });
 
+      if (isMobile) {
+        gsap.set(photoRef.current, { scale: 1, filter: "none" });
+        gsap.set(wordWheelRef.current, { opacity: 1, y: 0, rotateX: 0 });
+        gsap.set(arrowRef.current, { opacity: 1, y: 0 });
+        return;
+      }
+
       /* ── Entrance animation ───────────────────── */
       const entranceTl = gsap.timeline({
         defaults: { ease: "expo.out" },

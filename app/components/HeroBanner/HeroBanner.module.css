@@ -180,6 +180,17 @@
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .banner {
+    height: 100svh;
+    min-height: 620px;
+  }
+
+  .wordWheel,
+  .wheelWord {
+    will-change: auto;
+  }
+}
+@media (max-width: 768px) {
+  .banner {
     height: calc(100vh + (var(--banner-steps) * 38vh));
     min-height: 100vh;
   }

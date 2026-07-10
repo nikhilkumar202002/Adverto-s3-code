@@ -8,6 +8,12 @@ export default function CustomCursor() {
   const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
+    const supportsCustomCursor = window.matchMedia(
+      "(min-width: 768px) and (hover: hover) and (pointer: fine)",
+    ).matches;
+
+    if (!supportsCustomCursor) return;
+
     const mouseMove = (e: MouseEvent) => {
       setPosition({ x: e.clientX, y: e.clientY });
 

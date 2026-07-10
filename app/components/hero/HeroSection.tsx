@@ -109,7 +109,7 @@ export default function HeroSection() {
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
         />
         <video
           ref={landscapeVideoRef}
@@ -118,7 +118,7 @@ export default function HeroSection() {
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
         />
       </div>
     </section>
