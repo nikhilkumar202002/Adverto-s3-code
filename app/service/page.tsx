@@ -107,6 +107,7 @@ export default function ServicePage() {
                       </p>
                       <ServiceCardLink
                         href={service.link}
+                        cardId={`service-${service.id}`}
                         className="inline-flex items-center gap-2 border-b border-white/35 pb-1 text-[11px] font-medium uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:border-white sm:text-[12px]"
                       >
                         Explore Service
