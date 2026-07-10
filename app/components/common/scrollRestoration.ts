@@ -1,423 +1,230 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
-import { usePathname } from "next/navigation";
+const STORAGE_KEY = "adverto:scroll-entries:v2";
+const HISTORY_KEY = "__advertoScrollKey";
+const MAX_ENTRIES = 30;
+const MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
-export type NavigationMemory = {
-  pathname: string;
-  sectionId: string | null;
-  cardId: string | null;
-  scrollY: number;
-  sliderId: string | null;
-  sliderIndex: number | null;
-  sliderProgress: number | null;
-  sliderTranslateX: number | null;
+type SliderSnapshot = {
+  progress: number;
+};
+
+export type ScrollSnapshot = {
+  key: string;
+  url: string;
+  x: number;
+  y: number;
+  documentHeight: number;
+  sliders: Record<string, SliderSnapshot>;
   savedAt: number;
 };
 
-type RememberScrollOptions = {
-  cardId?: string | null;
-  sectionId?: string | null;
-  sliderId?: string | null;
-  sliderIndex?: number | null;
-};
-
-const memoryKey = "adverto:navigation-memory";
-const maxAge = 30 * 60 * 1000;
+type SnapshotStore = Record<string, ScrollSnapshot>;
 
 const isBrowser = () => typeof window !== "undefined";
 
-const safeEscape = (value: string) => {
-  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
-    return CSS.escape(value);
-  }
+const createKey = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-  return value.replace(/["\\]/g, "\\$&");
-};
-
-const getTranslateX = (element: Element) => {
-  const transform = window.getComputedStyle(element).transform;
-
-  if (!transform || transform === "none") return 0;
-
-  return new DOMMatrixReadOnly(transform).m41;
-};
-
-const getAnimationDuration = (element: Element) => {
-  const duration = window.getComputedStyle(element).animationDuration;
-  const firstDuration = duration.split(",")[0]?.trim() ?? "0s";
-  const seconds = firstDuration.endsWith("ms")
-    ? Number.parseFloat(firstDuration) / 1000
-    : Number.parseFloat(firstDuration);
-
-  return Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
-};
-
-const getCardId = (element: HTMLElement | null) => {
-  const explicitCard = element?.closest<HTMLElement>("[data-scroll-card-id]");
-
-  if (explicitCard?.dataset.scrollCardId) {
-    return explicitCard.dataset.scrollCardId;
-  }
-
-  const card = element?.closest<HTMLElement>(
-    [
-      "[data-home-service-card]",
-      "[data-home-project-card]",
-      "[data-service-card-link]",
-      "[data-works-project]",
-      "[data-about-featured-project]",
-      "[data-campaign-card]",
-    ].join(","),
-  );
-
-  if (!card) return null;
-
-  return (
-    card.dataset.homeServiceCard ??
-    card.dataset.homeProjectCard ??
-    card.dataset.serviceCardLink ??
-    card.dataset.worksProject ??
-    card.dataset.aboutFeaturedProject ??
-    card.dataset.campaignCard ??
-    null
-  );
-};
-
-const getSectionId = (element: HTMLElement | null) => {
-  const section = element?.closest<HTMLElement>("[data-scroll-section-id], section[id]");
-
-  return section?.dataset.scrollSectionId ?? section?.id ?? null;
-};
-
-const getSlider = (element: HTMLElement | null) => {
-  const card = element?.closest<HTMLElement>("[data-scroll-slider-card-id]");
-  const slider = card?.closest<HTMLElement>("[data-scroll-slider-id]");
-  const track = slider?.querySelector<HTMLElement>("[data-scroll-slider-track]");
-
-  if (!card || !slider || !track) return null;
-
-  const cards = Array.from(
-    slider.querySelectorAll<HTMLElement>("[data-scroll-slider-card-id]"),
-  );
-  const sliderIndex = cards.findIndex((item) => item === card);
-  const translateX = getTranslateX(track);
-  const loopWidth = Math.max(track.scrollWidth / 2, 1);
-
-  return {
-    sliderId: slider.dataset.scrollSliderId ?? null,
-    sliderIndex: sliderIndex >= 0 ? sliderIndex : null,
-    sliderProgress: Math.min(Math.max(Math.abs(translateX) / loopWidth, 0), 1),
-    sliderTranslateX: translateX,
-  };
-};
-
-const getActiveSliderCard = (sliderId: string | null) => {
-  if (!sliderId) return null;
-
-  const slider = document.querySelector<HTMLElement>(
-    `[data-scroll-slider-id="${safeEscape(sliderId)}"]`,
-  );
-  const cards = Array.from(
-    slider?.querySelectorAll<HTMLElement>("[data-scroll-slider-card-id]") ?? [],
-  );
-
-  if (cards.length === 0) return null;
-
-  const viewportCenter = window.innerWidth / 2;
-
-  return cards.reduce<{ id: string | null; index: number | null; distance: number }>(
-    (closest, card, index) => {
-      const rect = card.getBoundingClientRect();
-      const distance = Math.abs(rect.left + rect.width / 2 - viewportCenter);
-
-      if (distance >= closest.distance) return closest;
-
-      return {
-        id: card.dataset.scrollSliderCardId ?? getCardId(card),
-        index,
-        distance,
-      };
-    },
-    { id: null, index: null, distance: Number.POSITIVE_INFINITY },
-  );
-};
-
-const buildMemory = (
-  trigger?: HTMLElement | null,
-  options: RememberScrollOptions = {},
-): NavigationMemory => {
-  const sourceElement = trigger ?? null;
-  const sliderState = getSlider(sourceElement);
-  const activeSliderCard = getActiveSliderCard(options.sliderId ?? sliderState?.sliderId ?? null);
-
-  return {
-    pathname: window.location.pathname,
-    sectionId: options.sectionId ?? getSectionId(sourceElement),
-    cardId: options.cardId ?? getCardId(sourceElement) ?? activeSliderCard?.id ?? null,
-    scrollY: window.scrollY,
-    sliderId: options.sliderId ?? sliderState?.sliderId ?? null,
-    sliderIndex:
-      options.sliderIndex ?? sliderState?.sliderIndex ?? activeSliderCard?.index ?? null,
-    sliderProgress: sliderState?.sliderProgress ?? null,
-    sliderTranslateX: sliderState?.sliderTranslateX ?? null,
-    savedAt: Date.now(),
-  };
-};
-
-export const rememberScrollPosition = (
-  trigger?: HTMLElement | null,
-  options: RememberScrollOptions = {},
-) => {
-  if (!isBrowser()) return;
-
-  sessionStorage.setItem(memoryKey, JSON.stringify(buildMemory(trigger, options)));
-};
-
-const readNavigationMemory = () => {
-  if (!isBrowser()) return null;
-
-  const serialized = sessionStorage.getItem(memoryKey);
-
-  if (!serialized) return null;
+const readStore = (): SnapshotStore => {
+  if (!isBrowser()) return {};
 
   try {
-    const memory = JSON.parse(serialized) as NavigationMemory;
+    const parsed = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "{}") as SnapshotStore;
+    const cutoff = Date.now() - MAX_AGE_MS;
 
-    if (Date.now() - memory.savedAt > maxAge) {
-      sessionStorage.removeItem(memoryKey);
-      return null;
-    }
-
-    return memory;
+    return Object.fromEntries(
+      Object.entries(parsed).filter(([, snapshot]) => snapshot.savedAt >= cutoff),
+    );
   } catch {
-    sessionStorage.removeItem(memoryKey);
-    return null;
+    return {};
   }
 };
 
-export const hasRememberedScrollForPath = (pathname: string) => {
-  const memory = readNavigationMemory();
+const writeStore = (store: SnapshotStore) => {
+  const entries = Object.entries(store)
+    .sort(([, a], [, b]) => b.savedAt - a.savedAt)
+    .slice(0, MAX_ENTRIES);
 
-  return memory?.pathname === pathname;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)));
+  } catch {
+    // Scroll restoration is progressive enhancement when storage is unavailable.
+  }
 };
 
-const clearNavigationMemory = () => {
-  sessionStorage.removeItem(memoryKey);
+export const getHistoryScrollKey = (state: unknown = window.history.state) => {
+  if (!state || typeof state !== "object") return null;
+
+  const value = (state as Record<string, unknown>)[HISTORY_KEY];
+  return typeof value === "string" ? value : null;
 };
 
-const dispatchScrollTo = (top: number, behavior: ScrollBehavior = "auto") => {
-  window.dispatchEvent(
-    new CustomEvent("adverto:scroll-to", { detail: { top, behavior } }),
+export const ensureHistoryScrollKey = () => {
+  const existing = getHistoryScrollKey();
+  const url = `${window.location.pathname}${window.location.search}`;
+  const existingSnapshot = existing ? readStore()[existing] : null;
+
+  // Next.js may copy custom history state into a newly pushed entry. A snapshot
+  // belonging to another URL means this is a new entry and needs its own key.
+  if (existing && (!existingSnapshot || existingSnapshot.url === url)) return existing;
+
+  const key = createKey();
+  const currentState =
+    window.history.state && typeof window.history.state === "object"
+      ? window.history.state
+      : {};
+
+  window.history.replaceState(
+    { ...currentState, [HISTORY_KEY]: key },
+    "",
+    window.location.href,
   );
+
+  return key;
 };
 
-const waitForImages = async (root: ParentNode, targetOnly = false) => {
-  const images = Array.from(root.querySelectorAll("img")).filter((image) => {
-    if (targetOnly) return true;
-    if (image.loading !== "lazy") return true;
+const readTranslateX = (element: HTMLElement) => {
+  const transform = window.getComputedStyle(element).transform;
+  if (!transform || transform === "none") return 0;
 
-    const rect = image.getBoundingClientRect();
+  try {
+    return new DOMMatrixReadOnly(transform).m41;
+  } catch {
+    return 0;
+  }
+};
 
-    return rect.top < window.innerHeight * 1.5;
+const captureSliders = () => {
+  const snapshots: Record<string, SliderSnapshot> = {};
+
+  document.querySelectorAll<HTMLElement>("[data-scroll-slider-id]").forEach((slider) => {
+    const id = slider.dataset.scrollSliderId;
+    const track = slider.querySelector<HTMLElement>("[data-scroll-slider-track]");
+    if (!id || !track) return;
+
+    const loopWidth = track.scrollWidth / 2;
+    if (loopWidth <= 0) return;
+
+    const offset = ((-readTranslateX(track) % loopWidth) + loopWidth) % loopWidth;
+    snapshots[id] = { progress: offset / loopWidth };
   });
 
-  await Promise.all(
-    images.map((image) => {
-      if (image.complete) return Promise.resolve();
-
-      return new Promise<void>((resolve) => {
-        const finish = () => {
-          image.removeEventListener("load", finish);
-          image.removeEventListener("error", finish);
-          resolve();
-        };
-
-        image.addEventListener("load", finish, { once: true });
-        image.addEventListener("error", finish, { once: true });
-      });
-    }),
-  );
+  return snapshots;
 };
 
-export const waitForPageStability = async (target?: HTMLElement | null) => {
-  if (document.readyState === "loading") {
-    await new Promise<void>((resolve) => {
-      document.addEventListener("DOMContentLoaded", () => resolve(), { once: true });
-    });
-  }
+export const saveScrollSnapshot = (key: string, url = `${window.location.pathname}${window.location.search}`) => {
+  if (!isBrowser()) return;
 
-  if (
-    "fonts" in document &&
-    typeof document.fonts?.ready?.then === "function"
-  ) {
-    await document.fonts.ready.catch(() => undefined);
-  }
+  const store = readStore();
+  store[key] = {
+    key,
+    url,
+    x: window.scrollX,
+    y: window.scrollY,
+    documentHeight: document.documentElement.scrollHeight,
+    sliders: captureSliders(),
+    savedAt: Date.now(),
+  };
+  writeStore(store);
+};
 
-  await waitForImages(target ?? document, Boolean(target));
+export const readScrollSnapshot = (key: string | null) => {
+  if (!key) return null;
+  return readStore()[key] ?? null;
+};
 
+const animationDurationMs = (track: HTMLElement) => {
+  const raw = window.getComputedStyle(track).animationDuration.split(",")[0]?.trim();
+  if (!raw) return 0;
+
+  const value = Number.parseFloat(raw);
+  if (!Number.isFinite(value)) return 0;
+  return raw.endsWith("ms") ? value : value * 1000;
+};
+
+export const restoreSliderSnapshots = (snapshot: ScrollSnapshot) => {
+  Object.entries(snapshot.sliders).forEach(([id, sliderSnapshot]) => {
+    const slider = document.querySelector<HTMLElement>(
+      `[data-scroll-slider-id="${CSS.escape(id)}"]`,
+    );
+    const track = slider?.querySelector<HTMLElement>("[data-scroll-slider-track]");
+    if (!track) return;
+
+    const duration = animationDurationMs(track);
+    if (duration > 0) {
+      track.style.animationDelay = `${-(duration * sliderSnapshot.progress)}ms`;
+    }
+  });
+};
+
+const relevantImagesReady = () => {
+  const viewportBottom = window.innerHeight * 1.5;
+  return Array.from(document.images).every((image) => {
+    const rect = image.getBoundingClientRect();
+    const affectsViewport = rect.bottom >= -window.innerHeight / 2 && rect.top <= viewportBottom;
+    return !affectsViewport || image.complete;
+  });
+};
+
+export const restoreScrollSnapshot = (
+  snapshot: ScrollSnapshot,
+  onStable?: () => void,
+) => {
+  let cancelled = false;
+  let frameId = 0;
   let stableFrames = 0;
-  let previousHeight = document.documentElement.scrollHeight;
-  let previousTargetTop = target?.getBoundingClientRect().top ?? 0;
+  let previousHeight = -1;
+  const startedAt = performance.now();
+  const timeoutMs = 2000;
 
-  await new Promise<void>((resolve) => {
-    let frameId = 0;
-    const observerOptions = { childList: true, subtree: true, attributes: true };
-    const mutationObserver = new MutationObserver(() => {
-      stableFrames = 0;
-    });
-    const resizeObserver = new ResizeObserver(() => {
-      stableFrames = 0;
-    });
+  const apply = () => {
+    restoreSliderSnapshots(snapshot);
+    window.dispatchEvent(
+      new CustomEvent("adverto:scroll-to", {
+        detail: { left: snapshot.x, top: snapshot.y, behavior: "auto" },
+      }),
+    );
+    window.scrollTo({ left: snapshot.x, top: snapshot.y, behavior: "auto" });
+  };
 
-    mutationObserver.observe(document.body, observerOptions);
-    resizeObserver.observe(document.documentElement);
-    if (target) resizeObserver.observe(target);
+  apply();
 
-    const cleanup = () => {
-      window.cancelAnimationFrame(frameId);
-      mutationObserver.disconnect();
-      resizeObserver.disconnect();
-    };
+  const check = () => {
+    if (cancelled) return;
 
-    const check = () => {
-      const nextHeight = document.documentElement.scrollHeight;
-      const nextTargetTop = target?.getBoundingClientRect().top ?? 0;
+    const height = document.documentElement.scrollHeight;
+    const atTarget = Math.abs(window.scrollY - snapshot.y) < 1;
+    const heightStable = height === previousHeight;
 
-      if (
-        Math.abs(nextHeight - previousHeight) < 1 &&
-        Math.abs(nextTargetTop - previousTargetTop) < 1
-      ) {
-        stableFrames += 1;
-      } else {
-        stableFrames = 0;
-        previousHeight = nextHeight;
-        previousTargetTop = nextTargetTop;
-      }
+    stableFrames = heightStable && relevantImagesReady() && atTarget
+      ? stableFrames + 1
+      : 0;
+    previousHeight = height;
 
-      if (stableFrames >= 2) {
-        cleanup();
-        resolve();
-        return;
-      }
+    if (!atTarget || !heightStable) apply();
 
-      frameId = window.requestAnimationFrame(check);
-    };
+    if (stableFrames >= 3 || performance.now() - startedAt >= timeoutMs) {
+      apply();
+      onStable?.();
+      return;
+    }
 
     frameId = window.requestAnimationFrame(check);
-  });
+  };
+
+  frameId = window.requestAnimationFrame(check);
+
+  return () => {
+    cancelled = true;
+    window.cancelAnimationFrame(frameId);
+  };
 };
 
-const findRestoreCard = (memory: NavigationMemory) => {
-  if (!memory.cardId) return null;
-
-  const cardId = safeEscape(memory.cardId);
-
-  return document.querySelector<HTMLElement>(
-    [
-      `[data-scroll-card-id="${cardId}"]`,
-      `[data-home-service-card="${cardId}"]`,
-      `[data-home-project-card="${cardId}"]`,
-      `[data-service-card-link="${cardId}"]`,
-      `[data-works-project="${cardId}"]`,
-      `[data-about-featured-project="${cardId}"]`,
-      `[data-campaign-card="${cardId}"]`,
-    ].join(","),
-  );
+// Compatibility helper for card components that explicitly save before navigation.
+export const rememberScrollPosition = () => {
+  if (!isBrowser()) return;
+  saveScrollSnapshot(ensureHistoryScrollKey());
 };
-
-const restoreSlider = (memory: NavigationMemory) => {
-  if (!memory.sliderId) return;
-
-  const slider = document.querySelector<HTMLElement>(
-    `[data-scroll-slider-id="${safeEscape(memory.sliderId)}"]`,
-  );
-  const track = slider?.querySelector<HTMLElement>("[data-scroll-slider-track]");
-
-  if (!slider || !track) return;
-
-  if (Number.isFinite(memory.sliderProgress)) {
-    const duration = getAnimationDuration(track);
-
-    if (duration > 0) {
-      track.style.animationDelay = `${-(duration * (memory.sliderProgress ?? 0))}s`;
-      track.style.animationPlayState = "running";
-    }
-  }
-
-  if (Number.isFinite(memory.sliderTranslateX)) {
-    track.style.transform = `translate3d(${memory.sliderTranslateX}px, 0, 0)`;
-    window.requestAnimationFrame(() => {
-      track.style.transform = "";
-    });
-  }
-
-};
-
-export const restoreRememberedScroll = async (pathname: string) => {
-  const memory = readNavigationMemory();
-
-  if (!memory || memory.pathname !== pathname) return false;
-
-  clearNavigationMemory();
-  restoreSlider(memory);
-
-  const target = findRestoreCard(memory);
-
-  if (target) {
-    target.scrollIntoView({ behavior: "smooth", block: "center" });
-    await waitForPageStability(target);
-    restoreSlider(memory);
-    target.scrollIntoView({ behavior: "smooth", block: "center" });
-    return true;
-  }
-
-  dispatchScrollTo(memory.scrollY, "smooth");
-  await waitForPageStability();
-  dispatchScrollTo(memory.scrollY, "smooth");
-  return true;
-};
-
-export const useRememberScroll = (options: RememberScrollOptions = {}) =>
-  useCallback(
-    (trigger?: HTMLElement | null) => {
-      rememberScrollPosition(trigger, options);
-    },
-    [options],
-  );
-
-export const useRememberSlider = (sliderId: string) =>
-  useCallback(
-    (trigger?: HTMLElement | null, sliderIndex?: number | null) => {
-      rememberScrollPosition(trigger, { sliderId, sliderIndex });
-    },
-    [sliderId],
-  );
-
-export const useRestoreScroll = () => {
-  const pathname = usePathname();
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const frameId = window.requestAnimationFrame(() => {
-      void restoreRememberedScroll(pathname).then(() => {
-        if (cancelled) return;
-      });
-    });
-
-    return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(frameId);
-    };
-  }, [pathname]);
-};
-
-export const useRestoreSlider = (sliderId: string) =>
-  useCallback(() => {
-    const memory = readNavigationMemory();
-
-    if (memory?.sliderId === sliderId) {
-      restoreSlider(memory);
-    }
-  }, [sliderId]);

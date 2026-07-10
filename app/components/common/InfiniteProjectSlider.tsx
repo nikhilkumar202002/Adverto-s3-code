@@ -90,6 +90,7 @@ export default function InfiniteProjectSlider({
             {sliderProjects.map((project, index) => (
               <Link
                 href={`/portfolio/${project.slug || project.id}`}
+                scroll
                 key={`${setIndex}-${project.id}-${index}`}
                 data-cursor-ignore="true"
                 data-scroll-card-id={`project-${project.slug || project.id}`}

@@ -19,7 +19,6 @@ export default function ServiceCardLink({
       href={href}
       className={className}
       data-service-card-link={href}
-      scroll={false}
     >
       {children}
     </Link>

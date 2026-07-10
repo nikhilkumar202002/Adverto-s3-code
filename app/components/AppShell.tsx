@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import Preloader from "./Preloader/Preloader";
 import Navbar from "./navbar/Navbar";
 import NoiseOverlay from "./common/NoiseOverlay";
@@ -14,7 +14,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <>
       <SmoothScroll>
-        <NavigationRestoration />
+        <Suspense fallback={null}>
+          <NavigationRestoration />
+        </Suspense>
         <NoiseOverlay />
         <CustomCursor />
         <Navbar />

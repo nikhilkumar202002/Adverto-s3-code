@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import Container from "../common/Container";
 import { servicesData } from "../../data/services";
@@ -132,17 +133,18 @@ export default function ServicesSection() {
               >
                 <Link
                   href={service.link}
-                  scroll={false}
                   data-scroll-card-id={`service-${service.id}`}
                   data-home-service-card={service.link}
                   className="group relative flex min-h-[300px] flex-col justify-between overflow-hidden rounded-[16px] border border-white/10 p-5 transition-colors duration-500 hover:border-white/25 sm:min-h-[340px] sm:p-6 md:min-h-[360px] md:rounded-[20px] md:p-8 lg:min-h-[380px] lg:p-10"
                 >
-                  <img
+                  <Image
                     src={serviceCardBackground}
                     alt=""
+                    fill
                     loading="lazy"
                     decoding="async"
                     aria-hidden="true"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
 

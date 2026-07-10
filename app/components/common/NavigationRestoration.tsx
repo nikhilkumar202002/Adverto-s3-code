@@ -1,30 +1,46 @@
 "use client";
 
-import { useEffect, useLayoutEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
-  hasRememberedScrollForPath,
-  rememberScrollPosition,
-  restoreRememberedScroll,
-  useRestoreScroll,
+  ensureHistoryScrollKey,
+  getHistoryScrollKey,
+  readScrollSnapshot,
+  restoreScrollSnapshot,
+  saveScrollSnapshot,
 } from "./scrollRestoration";
 
-const isModifiedClick = (event: MouseEvent) =>
-  event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0;
-
-const getAnchorFromEventTarget = (target: EventTarget | null) => {
-  if (!(target instanceof Element)) return null;
-
-  return target.closest<HTMLAnchorElement>("a[href]");
+type PendingTraversal = {
+  key: string;
+  url: string;
 };
+
+let pendingTraversal: PendingTraversal | null = null;
+
+const currentUrl = () => `${window.location.pathname}${window.location.search}`;
 
 export default function NavigationRestoration() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  useRestoreScroll();
+  const searchParams = useSearchParams();
+  const activeKey = useRef<string | null>(null);
+  const activeUrl = useRef<string | null>(null);
 
   useLayoutEffect(() => {
+    const key = ensureHistoryScrollKey();
+    activeKey.current = key;
+    activeUrl.current = currentUrl();
+
+    const pending = pendingTraversal;
+    if (!pending || pending.key !== key || pending.url !== currentUrl()) return;
+
+    pendingTraversal = null;
+    const snapshot = readScrollSnapshot(key);
+    if (!snapshot || snapshot.url !== currentUrl()) return;
+
+    return restoreScrollSnapshot(snapshot);
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
     if (!("scrollRestoration" in window.history)) return;
 
     const previous = window.history.scrollRestoration;
@@ -36,58 +52,72 @@ export default function NavigationRestoration() {
   }, []);
 
   useEffect(() => {
-    const handlePointerEnter = (event: PointerEvent) => {
-      const anchor = getAnchorFromEventTarget(event.target);
+    let frameId = 0;
 
-      if (!anchor) return;
-
-      const nextUrl = new URL(anchor.href, window.location.origin);
-
-      if (nextUrl.origin === window.location.origin) {
-        router.prefetch(nextUrl.pathname);
+    const saveActiveEntry = () => {
+      if (activeKey.current && activeUrl.current) {
+        saveScrollSnapshot(activeKey.current, activeUrl.current);
       }
+    };
+
+    const handleScroll = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(saveActiveEntry);
     };
 
     const handleClick = (event: MouseEvent) => {
-      if (isModifiedClick(event)) return;
-
-      const anchor = getAnchorFromEventTarget(event.target);
-
-      if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
-
-      const nextUrl = new URL(anchor.href, window.location.origin);
-      const currentUrl = new URL(window.location.href);
-
-      if (nextUrl.origin !== currentUrl.origin) return;
-      if (nextUrl.pathname === currentUrl.pathname && nextUrl.search === currentUrl.search) {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         return;
       }
 
-      if (hasRememberedScrollForPath(nextUrl.pathname)) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const anchor = target?.closest<HTMLAnchorElement>("a[href]");
+      if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
 
-      rememberScrollPosition(anchor);
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin) return;
+      if (`${destination.pathname}${destination.search}` === currentUrl()) return;
+
+      saveActiveEntry();
     };
 
-    document.addEventListener("pointerenter", handlePointerEnter, true);
+    const handlePopState = (event: PopStateEvent) => {
+      saveActiveEntry();
+
+      const destinationKey = getHistoryScrollKey(event.state);
+      pendingTraversal = destinationKey
+        ? { key: destinationKey, url: currentUrl() }
+        : null;
+      activeKey.current = destinationKey;
+      activeUrl.current = currentUrl();
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+
+      const key = ensureHistoryScrollKey();
+      activeKey.current = key;
+      activeUrl.current = currentUrl();
+      const snapshot = readScrollSnapshot(key);
+      if (snapshot?.url === currentUrl()) restoreScrollSnapshot(snapshot);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("pagehide", saveActiveEntry);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("popstate", handlePopState);
     document.addEventListener("click", handleClick, true);
 
     return () => {
-      document.removeEventListener("pointerenter", handlePointerEnter, true);
+      window.cancelAnimationFrame(frameId);
+      saveActiveEntry();
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("pagehide", saveActiveEntry);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("popstate", handlePopState);
       document.removeEventListener("click", handleClick, true);
     };
-  }, [router]);
-
-  useEffect(() => {
-    const handlePageShow = () => {
-      void restoreRememberedScroll(pathname);
-    };
-
-    window.addEventListener("pageshow", handlePageShow);
-
-    return () => {
-      window.removeEventListener("pageshow", handlePageShow);
-    };
-  }, [pathname]);
+  }, []);
 
   return null;
 }

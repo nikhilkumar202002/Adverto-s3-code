@@ -6,7 +6,6 @@ import InnerBannerHeading from "../../components/common/InnerBannerHeading";
 import Reveal from "../../components/common/Reveal";
 import { serviceDetails, type ServiceSlug } from "../serviceDetails";
 import ServiceDetailBackLink from "./ServiceDetailBackLink";
-import ServiceDetailScrollReset from "./ServiceDetailScrollReset";
 
 type ServiceDetailPageProps = {
   slug: ServiceSlug;
@@ -19,7 +18,6 @@ export default function ServiceDetailPage({ slug }: ServiceDetailPageProps) {
 
   return (
     <main className="relative overflow-x-hidden bg-black text-white">
-      <ServiceDetailScrollReset slug={slug} />
       <section
         className="relative flex min-h-[680px] items-end overflow-hidden border-b border-white/5 pb-12 pt-32 md:pb-16 min-[1320px]:min-h-[100vh]"
         data-navbar-transparent

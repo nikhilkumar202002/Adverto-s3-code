@@ -97,6 +97,7 @@ export default function FeaturedWorksSlider({
                   <Link
                     key={`${setIndex}-${project.slug}-${index}`}
                     href={`/portfolio/${project.slug}`}
+                    scroll
                     data-scroll-card-id={`project-${project.slug}`}
                     data-scroll-slider-card-id={`project-${project.slug}`}
                     data-about-featured-project={project.slug}
