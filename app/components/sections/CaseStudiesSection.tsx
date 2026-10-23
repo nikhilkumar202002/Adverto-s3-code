@@ -11,7 +11,7 @@ import InfiniteProjectSlider from "../common/InfiniteProjectSlider";
 import { moreProjects } from "../../data/moreProjects";
 import { caseStudyCollageProjects } from "../../data/portfolio";
 import { featuredPortfolioTiles } from "../../data/featuredportfolio";
-import { s3CampaignImages, s3Videos } from "../../data/s3Assets.js";
+import { s3CampaignImages, s3AlJazeeraCampaignImages, s3Videos } from "../../data/s3Assets.js";
 import styles from "./CaseStudiesSection.module.css";
 import { beginForwardNavigation } from "../common/scrollRestoration";
 
@@ -49,6 +49,7 @@ function useInViewport<T extends HTMLElement>() {
 }
 
 const koickalCampaignImages = s3CampaignImages;
+const alJazeeraCampaignImages = s3AlJazeeraCampaignImages;
 
 const headingWords = [["Case", "Studies", "&"], ["Campaigns"]];
 const smoothEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -172,20 +173,30 @@ function RotatingPortfolioTile({
   );
 }
 
-function RotatingCampaignImage() {
+function RotatingCampaignImage({
+  images = koickalCampaignImages,
+  alt = "Campaign visual",
+  priority = false,
+}: {
+  images?: string[];
+  alt?: string;
+  priority?: boolean;
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeImage = koickalCampaignImages[activeIndex];
+  const activeImage = images[activeIndex] ?? images[0];
   const { ref, isInViewport } = useInViewport<HTMLDivElement>();
 
   useEffect(() => {
-    if (!isInViewport || document.hidden) return;
+    if (!isInViewport || document.hidden || images.length <= 1) return;
 
     const timer = window.setInterval(() => {
-      setActiveIndex((currentIndex) => (currentIndex + 1) % koickalCampaignImages.length);
+      setActiveIndex((currentIndex) => (currentIndex + 1) % images.length);
     }, 2500);
 
     return () => window.clearInterval(timer);
-  }, [isInViewport]);
+  }, [isInViewport, images.length]);
+
+  if (!activeImage) return null;
 
   return (
     <div ref={ref} className="absolute inset-0">
@@ -200,9 +211,10 @@ function RotatingCampaignImage() {
       >
         <Image
           src={activeImage}
-          alt="Koickal Gold & Diamonds campaign visual"
+          alt={alt}
           fill
-          loading="lazy"
+          loading="eager"
+          priority={priority}
           sizes="(min-width: 1024px) 50vw, 100vw"
           className="h-full w-full object-contain object-center transition-transform duration-700 group-hover:scale-105"
         />
@@ -305,7 +317,10 @@ export default function CaseStudiesSection() {
             viewport={sectionRevealViewport}
             variants={fadeFromLeft}
           >
-            <RotatingCampaignImage />
+            <RotatingCampaignImage
+              images={koickalCampaignImages}
+              alt="Koickal Gold & Diamonds campaign visual"
+            />
             <div className="pointer-events-none absolute inset-0 rounded-[16px] md:rounded-[20px] bg-black/10" />
           </motion.div>
 
@@ -339,6 +354,59 @@ export default function CaseStudiesSection() {
               data-campaign-card="koickal-gold-diamonds"
               onNavigate={() =>
                 beginForwardNavigation("campaign-koickal-gold-diamonds")
+              }
+              className={`${styles.featuredCaseStudyReadMore} group mt-5 items-center gap-2 text-sm text-[#EDEDED] transition-colors hover:text-[#0000FF]`}
+            >
+              Read more
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* --- 2. FEATURED PROJECT 2 (AL JAZEERA LITTLE WONDER) --- */}
+        <div
+          className={`${styles.featuredCaseStudy} group mb-5 grid grid-cols-1 items-center gap-4 overflow-hidden rounded-[16px] border border-[#252525] bg-[#080808] p-3 md:rounded-[20px] md:p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.92fr)] lg:gap-6`}
+        >
+          <motion.div
+            className="relative aspect-[3492/2000] w-full overflow-hidden rounded-[16px] bg-white/5 md:rounded-[20px]"
+            initial="hidden"
+            whileInView="visible"
+            viewport={sectionRevealViewport}
+            variants={fadeFromLeft}
+          >
+            <RotatingCampaignImage
+              images={alJazeeraCampaignImages}
+              alt="Al Jazeera Little Wonder 2026 campaign visual"
+            />
+            <div className="pointer-events-none absolute inset-0 rounded-[16px] md:rounded-[20px] bg-black/10" />
+          </motion.div>
+
+          <motion.div
+            className="flex flex-col justify-center p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={sectionRevealViewport}
+            variants={fadeFromRight}
+          >
+            <p className="mb-3 text-[11px] uppercase tracking-[0.15em] text-[#0000FF] md:text-xs">
+              Kids Drawing Competition Campaign
+            </p>
+            <h3 className={`${styles.featuredCaseStudyTitle} mb-4 max-w-[720px] text-[25px] font-medium leading-[1.08] text-[#EDEDED] sm:text-[30px] md:text-[22px] lg:text-[35px] xl:text-4xl`}>
+              Al Jazeera Little Wonder 2026
+            </h3>
+            <p className={`${styles.featuredCaseStudyDescription} mb-4 max-w-[720px] text-[14px] leading-[1.65] text-white/50 md:text-[15px] lg:text-[14px] xl:text-[15px]`}>
+              A vibrant creative campaign developed by Adverto for Al Jazeera Oman&apos;s Little Wonder 2026.
+            </p>
+            <p className={`${styles.featuredCaseStudyLastDescription} mb-0 max-w-[720px] text-[14px] leading-[1.65] text-white/50 md:text-[15px] lg:text-[14px] xl:text-[15px]`}>
+              Celebrating children&apos;s imagination and artistic talent, the campaign was designed to encourage creativity, build confidence, and bring young talents into the spotlight.
+            </p>
+            <Link
+              href="/campigns/al-jazeera-little-wonder-2026"
+              scroll
+              data-scroll-card-id="campaign-al-jazeera-little-wonder-2026"
+              data-campaign-card="al-jazeera-little-wonder-2026"
+              onNavigate={() =>
+                beginForwardNavigation("campaign-al-jazeera-little-wonder-2026")
               }
               className={`${styles.featuredCaseStudyReadMore} group mt-5 items-center gap-2 text-sm text-[#EDEDED] transition-colors hover:text-[#0000FF]`}
             >

@@ -80,6 +80,7 @@ export default function MobileMenu({
             loading="eager"
             decoding="async"
             className="h-8 w-auto"
+            style={{ width: "auto" }}
           />
         </Link>
 

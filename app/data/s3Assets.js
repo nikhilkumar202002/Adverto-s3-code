@@ -23,25 +23,29 @@ export const s3Banners = {
   teamHero: s3AdvertoAsset("Banners/Team-banner.jpg"),
 };
 
-export const s3CampaignImages = [
-  "01.jpg",
+export const s3KoickalCampaignImages = [
   "01.webp",
-  "02.jpg",
   "02.webp",
-  "03.jpg",
   "03.webp",
-  "04.jpg",
   "04.webp",
-  "05.jpg",
   "05.webp",
+].map((fileName) => s3AdvertoAsset(`campaigns/Koickal Gold/${fileName}`));
+
+export const s3CampaignImages = s3KoickalCampaignImages;
+
+export const s3AlJazeeraCampaignImages = [
+  "01.jpg",
+  "02.jpg",
+  "03.jpg",
+  "04.jpg",
+  "05.jpg",
   "06.jpg",
   "07.jpg",
   "08.jpg",
   "09.jpg",
-  "10.jpg"
-].map(
-  (fileName) => s3AdvertoAsset(`campaigns/${fileName}`)
-);
+  "10.jpg",
+].map((fileName) => s3AdvertoAsset(`campaigns/Al Jazeera/${fileName}`));
+
 
 export const s3TeamImage = (fileName) => s3AdvertoAsset(`teams/${fileName}`);
 
