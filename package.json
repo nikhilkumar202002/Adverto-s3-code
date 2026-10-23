@@ -11,6 +11,7 @@
     "lint": "eslint",
     "optimize": "node scripts/optimize-images.mjs",
     "optimize:logos": "node scripts/optimize-client-logos.mjs",
+    "sync:assets": "node scripts/sync-s3-assets.mjs",
     "clean:appledouble": "node -e \"const fs=require('fs');const path=require('path');function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,entry.name);if(entry.isDirectory()){if(!['.git','node_modules','.next'].includes(entry.name)) walk(p);}else if(entry.isFile()&&entry.name.startsWith('._')) fs.rmSync(p);}}walk(process.cwd());\""
   },
   "dependencies": {

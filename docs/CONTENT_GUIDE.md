@@ -103,15 +103,14 @@ Before deleting an apparently duplicate data file, use `rg` to confirm whether i
 `app/data/s3Assets.js` is the central media manifest.
 
 ```text
-S3_BUCKET_BASE
-└── adverto/
-    ├── Banners/
-    ├── campaigns/
-    ├── teams/
-    ├── Home/
-    ├── Portfolio/
-    ├── videos/
-    └── client_logos/
+S3_BUCKET_BASE (Cloudflare Worker / R2)
+├── Banners/
+├── campaigns/
+├── teams/
+├── Home/
+├── Portfolio/
+├── videos/
+└── client_logos/
 ```
 
 `s3Asset()` encodes each path segment with `encodeURIComponent`. Pass a logical key rather than an already encoded URL. `s3PortfolioImage()` leaves absolute HTTP URLs unchanged and translates `/case-studies/` prefixes.

@@ -3,8 +3,8 @@ import path from "node:path";
 import sharp from "sharp";
 
 const bucket =
-  "https://jinskadamthodu-410139137516-eu-north-1-an.s3.eu-north-1.amazonaws.com";
-const sourceDirectory = "adverto/client_logos";
+  "https://pub-e7450afec95f428391514b56cd3e9428.r2.dev";
+const sourceDirectory = "client_logos";
 const outputDirectory = path.join(process.cwd(), "public", "client-logos");
 
 const logoFiles = [

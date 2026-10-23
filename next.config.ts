@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "adverto.jinskadamthodu2k15.workers.dev",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-e7450afec95f428391514b56cd3e9428.r2.dev",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "jinskadamthodu-410139137516-eu-north-1-an.s3.eu-north-1.amazonaws.com",
         pathname: "/adverto/**",
       },

@@ -676,6 +676,26 @@ const portfolioProjectDetails = {
     category: "Investments Brand",
     year: "2025",
   },
+  "11-core": {
+    title: "11 CORE",
+    category: "Fitness & Lifestyle Brand",
+    year: "2026",
+  },
+  "design-marble-granite": {
+    title: "DESIGN MARBLE & GRANITE",
+    category: "Marble & Granite Brand",
+    year: "2026",
+  },
+  orlo: {
+    title: "ORLO",
+    category: "Branding",
+    year: "2026",
+  },
+  quoon: {
+    title: "QUOON",
+    category: "Branding",
+    year: "2026",
+  },
 };
 
 const portfolioPageProjectsBase = [
@@ -1075,6 +1095,54 @@ const portfolioPageProjectsBase = [
       "A bright brand presentation with expressive visual assets, product-forward layouts, and cohesive campaign pieces.",
     services: ["Brand identity", "Packaging", "Digital design"],
     gallery: POTOGOGalleryImages,
+  },
+  {
+    slug: "11-core",
+    title: "11 CORE",
+    subtitle: "Fitness & Lifestyle Brand · 2026",
+    category: "Fitness & Lifestyle Brand",
+    year: "2026",
+    heroImage: "Portfolio/11_CORE/cover/cover.jpg",
+    description:
+      "A dynamic branding and identity system developed with high-impact applications, clean presentation boards, and bold visual storytelling.",
+    services: ["Brand identity", "Art direction", "Campaign design"],
+    gallery: [],
+  },
+  {
+    slug: "design-marble-granite",
+    title: "DESIGN MARBLE & GRANITE",
+    subtitle: "Marble & Granite Brand · 2026",
+    category: "Marble & Granite Brand",
+    year: "2026",
+    heroImage: "Portfolio/DESIGN_MARBLE_GRANITE/Cover/cover.jpg",
+    description:
+      "A premium brand identity project for luxury stone and surfaces, featuring refined typography, elegant textures, and polished presentation assets.",
+    services: ["Brand identity", "Packaging", "Art direction"],
+    gallery: [],
+  },
+  {
+    slug: "orlo",
+    title: "ORLO",
+    subtitle: "Branding · 2026",
+    category: "Branding",
+    year: "2026",
+    heroImage: "Portfolio/ORLO/Cover/cover.jpg",
+    description:
+      "A complete identity and branding system shaped with modern layout styling, distinctive visual assets, and versatile collateral rollout.",
+    services: ["Brand identity", "Guidelines", "Campaign design"],
+    gallery: [],
+  },
+  {
+    slug: "quoon",
+    title: "QUOON",
+    subtitle: "Branding · 2026",
+    category: "Branding",
+    year: "2026",
+    heroImage: "Portfolio/QUOON/Cover/cover.jpg",
+    description:
+      "A forward-looking brand system with clean geometric typography, cohesive digital assets, and high-impact identity applications.",
+    services: ["Brand identity", "Presentation", "Digital design"],
+    gallery: [],
   },
 ];
 
