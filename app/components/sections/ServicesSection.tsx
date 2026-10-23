@@ -9,13 +9,14 @@ import Container from "../common/Container";
 import { servicesData } from "../../data/services";
 import { s3Banners } from "../../data/s3Assets.js";
 import styles from "./ServicesSection.module.css";
+import { rememberServiceEntry } from "../common/scrollRestoration";
 
 const serviceCardBackground = s3Banners.serviceCard;
 const headingWords = ["Creative", "Services"];
 const smoothEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const sectionRevealViewport = {
-  once: false,
+  once: true,
   amount: 0.25,
 };
 
@@ -135,6 +136,7 @@ export default function ServicesSection() {
                   href={service.link}
                   data-scroll-card-id={`service-${service.id}`}
                   data-home-service-card={service.link}
+                  onNavigate={() => rememberServiceEntry(`service-${service.id}`)}
                   className="group relative flex min-h-[300px] flex-col justify-between overflow-hidden rounded-[16px] border border-white/10 p-5 transition-colors duration-500 hover:border-white/25 sm:min-h-[340px] sm:p-6 md:min-h-[360px] md:rounded-[20px] md:p-8 lg:min-h-[380px] lg:p-10"
                 >
                   <Image

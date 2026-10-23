@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { X } from "lucide-react";
 import type { NavItem } from "./Navbar";
 
@@ -17,13 +19,50 @@ export default function MobileMenu({
   activePath: string;
   onNavigate: (href: string) => void;
 }) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    
+    // Pause Lenis scrolling while menu is open
+    window.dispatchEvent(new CustomEvent("adverto:lock-scroll"));
+    
+    closeButtonRef.current?.focus({ preventScroll: true });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      
+      // Resume Lenis scrolling
+      window.dispatchEvent(new CustomEvent("adverto:unlock-scroll"));
+      
+      previouslyFocused?.focus({ preventScroll: true });
+    };
+  }, [isOpen, setIsOpen]);
+
+  if (!isOpen) return null;
+
   return (
     <div
-      className={`fixed inset-0 z-50 bg-black/95 backdrop-blur-xl transition-all duration-500 ${
-        isOpen
-          ? "pointer-events-auto opacity-100"
-          : "pointer-events-none opacity-0"
-      }`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation menu"
+      data-lenis-prevent // Added to prevent Lenis from hijacking touch/scroll events here
+      className="fixed inset-0 z-[100] flex min-h-dvh flex-col overscroll-contain bg-black md:bg-black/95 md:backdrop-blur-xl"
     >
       {/* Top */}
       <div className="flex items-center justify-between border-b border-white/10 px-[24px] py-6">
@@ -31,26 +70,26 @@ export default function MobileMenu({
           href="/"
           aria-label="Adverto home"
           className="inline-block transition hover:opacity-90"
-          onClick={() => setIsOpen(false)}
+          onNavigate={() => setIsOpen(false)}
         >
-          <img
+          <Image
             src="/main-logo.svg"
             alt="Adverto"
             width={128}
             height={32}
-            loading="lazy"
+            loading="eager"
             decoding="async"
             className="h-8 w-auto"
           />
         </Link>
 
-        <button onClick={() => setIsOpen(false)}>
+        <button ref={closeButtonRef} type="button" aria-label="Close navigation menu" onClick={() => setIsOpen(false)}>
           <X size={30} className="text-[#EDEDED]" />
         </button>
       </div>
 
       {/* Links */}
-      <div className="flex h-[80vh] flex-col items-center justify-center gap-10">
+      <nav className="flex min-h-0 flex-1 flex-col items-center justify-center gap-8 overflow-y-auto px-6 py-10 sm:gap-10">
         {navItems.map((item) => {
           const activePaths = item.activePaths ?? [item.href];
           const isActive = activePaths.some((path) => {
@@ -62,9 +101,9 @@ export default function MobileMenu({
               key={item.label}
               href={item.href}
               aria-current={isActive ? "page" : undefined}
-              onClick={() => {
+              onClick={() => setIsOpen(false)}
+              onNavigate={() => {
                 onNavigate(item.href);
-                setIsOpen(false);
               }}
               className={`relative text-[14px] font-normal uppercase tracking-wider transition hover:text-[#0000FF] ${
                 isActive ? "text-white" : "text-[#EDEDED]"
@@ -79,7 +118,7 @@ export default function MobileMenu({
             </Link>
           );
         })}
-      </div>
+      </nav>
     </div>
   );
 }

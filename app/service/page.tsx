@@ -20,7 +20,7 @@ export default function ServicePage() {
       <section
         id="hero"
         data-scroll-section-id="hero"
-        className="relative flex min-h-[680px] items-end overflow-hidden border-b border-white/5 pb-[40px] min-[1320px]:min-h-[100vh]"
+        className="relative flex min-h-170 items-end overflow-hidden border-b border-white/5 pb-10 min-[1320px]:min-h-screen"
         data-navbar-transparent
       >
         <div aria-hidden className="absolute inset-0 z-0 bg-black">
@@ -48,17 +48,17 @@ export default function ServicePage() {
             once={false}
             waitForPageTransition
           >
-            <div className="mb-[25px] grid grid-cols-1 gap-8 md:grid-cols-12 md:items-end">
+            <div className="mb-6.25 grid grid-cols-1 gap-8 md:grid-cols-12 md:items-end">
               <div className="md:col-span-12">
-                <p className="mb-2 flex items-center gap-3 text-[12px] uppercase tracking-[0.1em] text-[#0000FF] sm:text-[13px] md:mb-3 md:text-[14px]">
-                  <span className="h-[1px] w-[30px] bg-[#0000FF]" />
+                <p className="mb-2 flex items-center gap-3 text-[12px] uppercase tracking-widest text-[#0000FF] sm:text-[13px] md:mb-3 md:text-[14px]">
+                  <span className="h-px w-7.5 bg-[#0000FF]" />
                   What We Do
                 </p>
                 <InnerBannerHeading
                   as="h2"
                   text="Services Built Around Outcomes"
                   variant="custom"
-                  className="w-full text-[36px] font-medium leading-[1] text-[#EDEDED] sm:text-[44px] md:text-[58px] lg:text-[66px] xl:text-[70px]"
+                  className="w-full text-[36px] font-medium leading-none text-[#EDEDED] sm:text-[44px] md:text-[58px] lg:text-[66px] xl:text-[70px]"
                 />
               </div>
               <div className="flex items-end md:col-span-4 md:col-start-9">
@@ -66,7 +66,7 @@ export default function ServicePage() {
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 gap-x-[20px] gap-y-[20px] md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-x-5 gap-y-5 md:grid-cols-2 lg:grid-cols-4">
             {servicesData.map((service, index) => {
               const Icon = service.icon;
 
@@ -80,9 +80,9 @@ export default function ServicePage() {
                 >
                   <article
                     data-scroll-card-id={`service-${service.id}`}
-                    className="group relative flex min-h-[360px] flex-col overflow-hidden rounded-[20px] border border-white/10 bg-[#0000FF] p-5 pt-28 text-white transition-colors duration-500 hover:border-white/25 hover:bg-[#0000cc] sm:min-h-[390px] sm:p-6 sm:pt-32 md:min-h-[430px] md:p-7 md:pt-36 lg:min-h-[460px] lg:p-8 lg:pt-36 min-[1200px]:pt-0"
+                    className="group relative flex min-h-90 flex-col overflow-hidden rounded-[20px] border border-white/10 bg-[#0000FF] p-5 pt-28 text-white transition-colors duration-500 hover:border-white/25 hover:bg-[#0000cc] sm:min-h-97.5 sm:p-6 sm:pt-32 md:min-h-107.5 md:p-7 md:pt-36 lg:min-h-115 lg:p-8 lg:pt-36 min-[1200px]:pt-0"
                   >
-                    <div className="pointer-events-none absolute -top-[150px] left-1/2 z-0 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-white/20 opacity-0 blur-[80px] transition-all duration-700 group-hover:translate-y-8 group-hover:opacity-100" />
+                    <div className="pointer-events-none absolute -top-37.5 left-1/2 z-0 h-75 w-75 -translate-x-1/2 rounded-full bg-white/20 opacity-0 blur-[80px] transition-all duration-700 group-hover:translate-y-8 group-hover:opacity-100" />
 
                     <div className="absolute right-5 top-5 z-10 text-[32px] font-medium leading-none text-white/20 transition-colors duration-500 group-hover:text-white/35 sm:right-6 sm:top-6 sm:text-[38px] md:right-7 md:top-7 md:text-[42px] lg:right-8 lg:top-8">
                       {service.id}
@@ -92,7 +92,7 @@ export default function ServicePage() {
                       <Icon size={20} strokeWidth={1.5} />
                     </div>
 
-                    <div className="relative z-10 mt-auto mb-4 transition-transform duration-500 ease-out min-[1200px]:absolute min-[1200px]:inset-x-8 min-[1200px]:bottom-8 min-[1200px]:mb-0 min-[1200px]:mt-0 min-[1200px]:group-hover:-translate-y-[170px]">
+                    <div className="relative z-10 mt-auto mb-4 transition-transform duration-500 ease-out min-[1200px]:absolute min-[1200px]:inset-x-8 min-[1200px]:bottom-8 min-[1200px]:mb-0 min-[1200px]:mt-0 min-[1200px]:group-hover:-translate-y-42.5">
                       <InnerBannerHeading
                         as="h3"
                         text={service.title}

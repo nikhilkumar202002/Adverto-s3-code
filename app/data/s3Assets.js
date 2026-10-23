@@ -188,7 +188,7 @@ const mistwishGalleryImages = Array.from(
 );
 
 const waterCanGalleryImages = Array.from(
-  { length: 12 },
+  { length: 9 },
   (_, index) => `/case-studies/WATER_CAN/${index + 1}.webp`,
 );
 
@@ -360,7 +360,7 @@ export const s3PortfolioProjects = {
     mistwishGalleryImages,
   ),
   "water-can": s3PortfolioProject(
-    "/case-studies/WATER_CAN/Cover/cover copy.webp",
+    "/case-studies/WATER_CAN/Cover/water-cover.webp",
     waterCanGalleryImages,
   ),
   ayan: s3PortfolioProject(
@@ -440,40 +440,42 @@ export const s3PortfolioProjects = {
 export const s3Videos = {
   heroPortrait: s3AdvertoAsset("videos/Adverto_Portrait.mp4"),
   heroLandscape: s3AdvertoAsset("videos/Adverto_Landscape.mp4"),
-  centerVideo: s3AdvertoAsset("videos/center-video.mp4"),
+  centerVideo: s3AdvertoAsset("videos/Center_Video.mp4"),
 };
 
 export const s3ServiceVideos = {
   horizontal: [
-    "Img_0865.mp4",
-    "IMG_0866.mp4",
-    "Img_0867.mp4",
-    "Img_0868.mp4",
-    "Img_0870.mp4",
-    "Img_0871.mp4",
-    "Img_0880.mp4",
-    "Img_0881.mp4",
-    "Img_0882.mp4",
-    "Img_0883.mp4",
-    "Img_0864.mp4",
+    "Img 0865.mp4",
+    "Img 0866.mp4",
+    "Img 0867.mp4",
+    "Img 0868.mp4",
+    "Img 0864.mp4",
+
+    "Img 0870.mp4",
+    "Img 0871.mp4",
+    "Img 0880.mp4",
+    "Img 0881.mp4",
+    "Img 0882.mp4",
+    "Img 0883.mp4",
   ].map((fileName) => s3AdvertoAsset(`videos/horizontal/${fileName}`)),
   vertical: [
-    "Img_0884.mp4",
-    "Img_0885.mp4",
-    "Img_0886.mp4",
-    "Img_0887.mp4",
-    "Img_0888.mp4",
-    "Img_0889.mp4",
-    "Img_0890.mp4",
-    "Img_1775.mp4",
-    "Img_1776.mp4",
-    "Img_1780.mp4",
-    "IMG_1781.mp4",
-    "Img_1782.mp4",
-    "Img_1783.mp4",
-    "Img_1784.mp4",
-    "Img_1786.mp4",
-    "Img_1788.mp4",
+    "Img 0884.mp4",
+    "Img 0885.mp4",
+    "Img 0886.mp4",
+    "Img 0887.mp4",
+    "Img 0888.mp4",
+    "Img 0889.mp4",
+    "Img 0890.mp4",
+    "Img 1775.mp4",
+    "Img 1776.mp4",
+    "Img 1780.mp4",
+    "Img 1781.mp4",
+    "Img 1782.mp4",
+    "Img 1783.mp4",
+    "Img 1784.mp4",
+    "Img 1786.mp4",
+    "Img 1788.mp4",
+    "Vertical-Video.mp4",
   ].map((fileName) => s3AdvertoAsset(`videos/vertical/${fileName}`)),
 };
 

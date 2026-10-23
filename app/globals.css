@@ -7,7 +7,7 @@
   font-style: normal;
   font-weight: 100;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-Thin.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-Thin.woff2") format("woff2");
 }
 
 @font-face {
@@ -15,7 +15,7 @@
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-Light.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-Light.woff2") format("woff2");
 }
 
 @font-face {
@@ -23,7 +23,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-Regular.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-Regular.woff2") format("woff2");
 }
 
 @font-face {
@@ -31,7 +31,7 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-Medium.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-Medium.woff2") format("woff2");
 }
 
 @font-face {
@@ -39,7 +39,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-Bold.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-Bold.woff2") format("woff2");
 }
 
 @font-face {
@@ -47,7 +47,7 @@
   font-style: normal;
   font-weight: 800;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-ExtraBold.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-ExtraBold.woff2") format("woff2");
 }
 
 @font-face {
@@ -55,7 +55,7 @@
   font-style: normal;
   font-weight: 900;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-Black.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-Black.woff2") format("woff2");
 }
 
 @font-face {
@@ -63,7 +63,7 @@
   font-style: italic;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-RegularItalic.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-RegularItalic.woff2") format("woff2");
 }
 
 @font-face {
@@ -71,7 +71,7 @@
   font-style: italic;
   font-weight: 700;
   font-display: swap;
-  src: url("/fonts/CreatoDisplay-BoldItalic.otf") format("opentype");
+  src: url("/fonts/CreatoDisplay-BoldItalic.woff2") format("woff2");
 }
 
 /* CSS Variables */
@@ -265,4 +265,9 @@ html.lenis body {
   .portfolio-page-heading {
     font-size: 110px;
   }
+}
+
+:where(section[data-scroll-section-id], .section-breakpoint-heading) {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 800px;
 }

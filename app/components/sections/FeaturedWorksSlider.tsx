@@ -1,10 +1,16 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { portfolioPageProjects } from "../../data/portfolio";
 import InnerBannerHeading from "../common/InnerBannerHeading";
 import Reveal from "../common/Reveal";
+import {
+  readCurrentScrollSnapshot,
+  beginPortfolioProjectNavigation,
+  restoreSliderElement,
+} from "../common/scrollRestoration";
 
 type PortfolioProject = {
   slug: string;
@@ -30,6 +36,19 @@ export default function FeaturedWorksSlider({
 }: {
   waitForPageTransition?: boolean;
 }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    track.dataset.scrollSliderHydrated = "true";
+    const snapshot = readCurrentScrollSnapshot();
+    if (snapshot) {
+      restoreSliderElement(snapshot, "about-featured-projects", track);
+    }
+  }, []);
+
   return (
     <section
       id="featured-projects"
@@ -87,6 +106,7 @@ export default function FeaturedWorksSlider({
       <Reveal waitForPageTransition={waitForPageTransition} amount={0.01} y={40}>
         <div className="w-full overflow-hidden">
           <div
+            ref={trackRef}
             className="featured-work-track flex w-max  items-stretch"
             data-scroll-slider-track
             data-about-featured-track
@@ -101,6 +121,9 @@ export default function FeaturedWorksSlider({
                     data-scroll-card-id={`project-${project.slug}`}
                     data-scroll-slider-card-id={`project-${project.slug}`}
                     data-about-featured-project={project.slug}
+                    onNavigate={() =>
+                      beginPortfolioProjectNavigation(`project-${project.slug}`)
+                    }
                     className="featured-work-card group relative mx-2 aspect-[4/3] w-[300px] shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A] transition-colors duration-300 hover:border-[#0000FF]/70 sm:w-[360px] md:w-[460px]"
                   >
                     <Image

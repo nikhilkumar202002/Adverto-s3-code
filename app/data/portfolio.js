@@ -288,9 +288,6 @@ const waterCanGalleryImages = [
   "/case-studies/WATER_CAN/7.webp",
   "/case-studies/WATER_CAN/8.webp",
   "/case-studies/WATER_CAN/9.webp",
-  "/case-studies/WATER_CAN/10.webp",
-  "/case-studies/WATER_CAN/11.webp",
-  "/case-studies/WATER_CAN/12.webp",
 ];
 
 const ayanGalleryImages = [
@@ -857,7 +854,7 @@ const portfolioPageProjectsBase = [
     subtitle: "Branding · 2024",
     category: "Branding",
     year: "2024",
-    heroImage: "/case-studies/WATER_CAN/Cover/cover copy.webp",
+    heroImage: "/case-studies/WATER_CAN/Cover/water-cover.webp",
     description:
       "A clean brand presentation with product-forward visuals, packaging-ready assets, and practical communication frames.",
     services: ["Brand identity", "Packaging", "Campaign design"],

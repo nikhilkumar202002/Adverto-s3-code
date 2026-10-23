@@ -11,7 +11,7 @@ const headingWords = ["Brands", "We", "Helped", "Grow"];
 const smoothEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const sectionRevealViewport = {
-  once: false,
+  once: true,
   amount: 0.25,
 };
 

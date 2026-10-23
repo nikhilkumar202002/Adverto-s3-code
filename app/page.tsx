@@ -1,19 +1,20 @@
-import React from 'react'
-import HeroSection from './components/hero/HeroSection'
-import CaseStudiesSection from './components/sections/CaseStudiesSection'
-import ServicesSection from './components/sections/ServicesSection'
-import StorySection from './components/sections/StorySection'
-import FaqSection from './components/sections/FaqSection'
-import ClientLogo from './components/sections/ClientLogo'
-import HeroBanner from './components/HeroBanner/HeroBanner'
-import TeamSection from './components/TeamSection/TeamSection'
+import React from "react";
+import dynamic from "next/dynamic";
+import HeroSection from "./components/hero/HeroSection";
+
+// Dynamically import below-the-fold heavy sections to eliminate initial load lag
+const CaseStudiesSection = dynamic(() => import("./components/sections/CaseStudiesSection"), { ssr: true });
+const ServicesSection = dynamic(() => import("./components/sections/ServicesSection"), { ssr: true });
+const StorySection = dynamic(() => import("./components/sections/StorySection"), { ssr: true });
+const ClientLogo = dynamic(() => import("./components/sections/ClientLogo"), { ssr: true });
+const HeroBanner = dynamic(() => import("./components/HeroBanner/HeroBanner"), { ssr: true });
+const TeamSection = dynamic(() => import("./components/TeamSection/TeamSection"), { ssr: true });
+const FaqSection = dynamic(() => import("./components/sections/FaqSection"), { ssr: true });
 
 const page = () => {
-
-
   return (
     <>
-
+      {/* HeroSection is imported statically to render immediately above the fold */}
       <HeroSection />
       <CaseStudiesSection />
       <ServicesSection />
@@ -23,7 +24,7 @@ const page = () => {
       <TeamSection />
       <FaqSection />
     </>
-  )
-}
+  );
+};
 
-export default page
+export default page;

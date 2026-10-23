@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import Link from "next/link";
@@ -13,6 +13,7 @@ import { caseStudyCollageProjects } from "../../data/portfolio";
 import { featuredPortfolioTiles } from "../../data/featuredportfolio";
 import { s3CampaignImages, s3Videos } from "../../data/s3Assets.js";
 import styles from "./CaseStudiesSection.module.css";
+import { beginForwardNavigation } from "../common/scrollRestoration";
 
 type FeaturedPortfolioProject = {
   id: string;
@@ -28,13 +29,32 @@ type RotatingPortfolioTileProps = {
   className: string;
 };
 
+function useInViewport<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [isInViewport, setIsInViewport] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInViewport(entry.isIntersecting),
+      { rootMargin: "150px 0px", threshold: 0.01 },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isInViewport };
+}
+
 const koickalCampaignImages = s3CampaignImages;
 
 const headingWords = [["Case", "Studies", "&"], ["Campaigns"]];
 const smoothEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const sectionRevealViewport = {
-  once: false,
+  once: true,
   amount: 0.25,
 };
 
@@ -118,21 +138,22 @@ function RotatingPortfolioTile({
 }: RotatingPortfolioTileProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeProject = projects[activeIndex] ?? projects[0];
+  const { ref, isInViewport } = useInViewport<HTMLDivElement>();
 
   useEffect(() => {
-    if (projects.length < 2) return;
+    if (projects.length < 2 || !isInViewport || document.hidden) return;
 
     const timer = window.setInterval(() => {
       setActiveIndex((currentIndex) => (currentIndex + 1) % projects.length);
     }, intervalMs);
 
     return () => window.clearInterval(timer);
-  }, [intervalMs, projects.length]);
+  }, [intervalMs, isInViewport, projects.length]);
 
   if (!activeProject) return null;
 
   return (
-    <div className={`group relative w-full overflow-hidden rounded-[20px] border border-transparent transition-colors duration-300 group-hover:border-b-2 group-hover:border-b-[#0000FF] [perspective:1200px] ${className}`}>
+    <div ref={ref} className={`group relative w-full overflow-hidden rounded-[20px] border border-transparent transition-colors duration-300 group-hover:border-b-2 group-hover:border-b-[#0000FF] [perspective:1200px] ${className}`}>
       <AnimatePresence initial={false} mode="popLayout">
         <motion.img
           key={activeProject.image}
@@ -154,16 +175,20 @@ function RotatingPortfolioTile({
 function RotatingCampaignImage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeImage = koickalCampaignImages[activeIndex];
+  const { ref, isInViewport } = useInViewport<HTMLDivElement>();
 
   useEffect(() => {
+    if (!isInViewport || document.hidden) return;
+
     const timer = window.setInterval(() => {
       setActiveIndex((currentIndex) => (currentIndex + 1) % koickalCampaignImages.length);
     }, 2500);
 
     return () => window.clearInterval(timer);
-  }, []);
+  }, [isInViewport]);
 
   return (
+    <div ref={ref} className="absolute inset-0">
     <AnimatePresence initial={false} mode="wait">
       <motion.div
         key={activeImage}
@@ -183,6 +208,45 @@ function RotatingCampaignImage() {
         />
       </motion.div>
     </AnimatePresence>
+    </div>
+  );
+}
+
+function ViewportVideo({ src, label }: { src: string; label: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !document.hidden) {
+          video.play().catch(() => undefined);
+        } else {
+          video.pause();
+        }
+      },
+      { rootMargin: "100px 0px", threshold: 0.05 },
+    );
+    observer.observe(video);
+    return () => {
+      observer.disconnect();
+      video.pause();
+    };
+  }, []);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      aria-label={label}
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      className="h-full w-full rounded-[16px] object-cover md:rounded-[20px]"
+    />
   );
 }
 
@@ -270,9 +334,12 @@ export default function CaseStudiesSection() {
             </p>
             <Link
               href="/campigns/koickal-gold-diamonds"
-              scroll={false}
+              scroll
               data-scroll-card-id="campaign-koickal-gold-diamonds"
               data-campaign-card="koickal-gold-diamonds"
+              onNavigate={() =>
+                beginForwardNavigation("campaign-koickal-gold-diamonds")
+              }
               className={`${styles.featuredCaseStudyReadMore} group mt-5 items-center gap-2 text-sm text-[#EDEDED] transition-colors hover:text-[#0000FF]`}
             >
               Read more
@@ -316,16 +383,7 @@ export default function CaseStudiesSection() {
             viewport={sectionRevealViewport}
             variants={fadeIn}
           >
-            <video
-              src={s3Videos.centerVideo}
-              aria-label={centerProject.alt}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              className="object-cover w-full h-full rounded-[16px] md:rounded-[20px]"
-            />
+            <ViewportVideo src={s3Videos.centerVideo} label={centerProject.alt} />
           </motion.div>
           {/* Col 3 */}
           <motion.div

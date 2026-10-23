@@ -9,6 +9,7 @@ import SmoothScroll from "./common/SmoothScroll";
 import ScrollTopWhatsapp from "./common/ScrollTopWhatsapp";
 import Footer from "./footer/Footer";
 import NavigationRestoration from "./common/NavigationRestoration";
+import NavigationCurtain from "./common/NavigationCurtain";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -17,13 +18,26 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <Suspense fallback={null}>
           <NavigationRestoration />
         </Suspense>
+
         <NoiseOverlay />
         <CustomCursor />
-        <Navbar />
-        <main className="relative z-10 min-h-[100svh]">{children}</main>
-        <ScrollTopWhatsapp />
-        <Footer />
+
+        <div className="flex min-h-screen flex-col">
+          <Navbar />
+          <Suspense fallback={null}>
+            <NavigationCurtain />
+          </Suspense>
+
+          <main className="relative z-10 flex-1">
+            {children}
+          </main>
+
+          <ScrollTopWhatsapp />
+
+          <Footer />
+        </div>
       </SmoothScroll>
+
       <Preloader />
     </>
   );

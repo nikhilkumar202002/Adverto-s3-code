@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { s3TeamImage } from "../../data/s3Assets.js";
@@ -157,13 +158,15 @@ function TeamCard({ member, deckIndex, cardRef }) {
     >
       <div className={styles.imageWrap}>
         <div className={styles.imageParallaxInner}>
-          <img
+          <Image
             src={member.image}
             alt={member.name}
-            loading="lazy"
-            decoding="async"
+            width={1080}
+            height={1500}
             className={styles.image}
             draggable={false}
+            priority={deckIndex < 2}
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
       </div>

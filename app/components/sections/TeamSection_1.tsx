@@ -69,7 +69,7 @@ export default function TeamSection() {
             transition={{ delay: 0.1 }}
           >
             <Link
-              href="/team"
+              href="/our-team"
               className="group flex items-center gap-2 text-[12px] font-medium tracking-[0.1em] text-white/70 uppercase transition-colors duration-300 hover:text-white pb-2"
             >
               Meet Everyone
@@ -122,11 +122,13 @@ export default function TeamSection() {
                   ))}
                 </motion.div>
 
-                <img
+                <Image
                   src={member.image}
                   alt={member.name}
                   loading="lazy"
                   decoding="async"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
@@ -148,3 +150,4 @@ export default function TeamSection() {
     </section>
   );
 }
+import Image from "next/image";

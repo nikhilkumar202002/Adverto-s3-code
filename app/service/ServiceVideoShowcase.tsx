@@ -14,75 +14,52 @@ const smoothEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const titleText = "Frames That\nMove Brands";
 
 const labelReveal: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 18,
-  },
+  hidden: { opacity: 0, y: 18 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.55,
-      ease: smoothEase,
-    },
+    transition: { duration: 0.55, ease: smoothEase },
   },
 };
 
 const videoGridReveal: Variants = {
   hidden: {},
   visible: {
-    transition: {
-      delayChildren: 0.62,
-      staggerChildren: 0.08,
-    },
+    transition: { delayChildren: 0.62, staggerChildren: 0.08 },
   },
 };
 
 const videoFromLeft: Variants = {
-  hidden: {
-    opacity: 0,
-    x: -56,
-  },
+  hidden: { opacity: 0, x: -56 },
   visible: {
     opacity: 1,
     x: 0,
-    transition: {
-      duration: 0.85,
-      ease: smoothEase,
-    },
+    transition: { duration: 0.85, ease: smoothEase },
   },
 };
 
 const videoFromRight: Variants = {
-  hidden: {
-    opacity: 0,
-    x: 56,
-  },
+  hidden: { opacity: 0, x: 56 },
   visible: {
     opacity: 1,
     x: 0,
-    transition: {
-      duration: 0.85,
-      ease: smoothEase,
-    },
+    transition: { duration: 0.85, ease: smoothEase },
   },
 };
 
 function createShuffledIndexes(length: number, previousIndex?: number) {
   const indexes = Array.from({ length }, (_, index) => index);
-
   for (let index = indexes.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(Math.random() * (index + 1));
     [indexes[index], indexes[swapIndex]] = [indexes[swapIndex], indexes[index]];
   }
-
   if (length > 1 && indexes[0] === previousIndex) {
     [indexes[0], indexes[1]] = [indexes[1], indexes[0]];
   }
-
   return indexes;
 }
 
+// ─── DUAL BUFFER PLAYLIST VIDEO COMPONENT ────────────────────────────────────
 function PlaylistVideo({
   videos,
   label,
@@ -92,66 +69,125 @@ function PlaylistVideo({
   label: string;
   className: string;
 }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [playbackOrder, setPlaybackOrder] = useState([0]);
+  const [playbackOrder, setPlaybackOrder] = useState<number[]>(() =>
+    Array.from({ length: videos.length }, (_, index) => index),
+  );
   const [orderIndex, setOrderIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
-  const activeIndex = playbackOrder[orderIndex] ?? 0;
-  const activeVideo = videos[activeIndex] ?? videos[0];
+  const [preloadNext, setPreloadNext] = useState(false);
+  
+  // Track which of the two <video> tags is currently active and visible
+  const [activeBuffer, setActiveBuffer] = useState<0 | 1>(0);
+
+  const videoRef0 = useRef<HTMLVideoElement | null>(null);
+  const videoRef1 = useRef<HTMLVideoElement | null>(null);
+
   const AudioIcon = isMuted ? VolumeX : Volume2;
 
-  const playNextVideo = () => {
-    if (videos.length < 2) {
-      videoRef.current?.play().catch(() => undefined);
-      return;
+  // Determine current and next video indices based on the shuffled playlist
+  const currentIndex = playbackOrder[orderIndex] ?? 0;
+  
+  // Calculate the next index to preload
+  const nextOrderIndex = (orderIndex + 1) % playbackOrder.length;
+  const nextIndex = playbackOrder[nextOrderIndex] ?? 0;
+
+  // The active buffer gets the current video. The inactive buffer gets the next video.
+  const src0 = activeBuffer === 0 ? videos[currentIndex] : videos[nextIndex];
+  const src1 = activeBuffer === 1 ? videos[currentIndex] : videos[nextIndex];
+
+  const handleVideoEnd = () => {
+    // 1. Determine if we need to shuffle a new batch
+    if (orderIndex >= playbackOrder.length - 1) {
+      setPlaybackOrder(createShuffledIndexes(videos.length, currentIndex));
+      setOrderIndex(0);
+    } else {
+      setOrderIndex((prev) => prev + 1);
     }
 
-    if (orderIndex < playbackOrder.length - 1) {
-      setOrderIndex((currentValue) => currentValue + 1);
-      return;
-    }
-
-    setPlaybackOrder(createShuffledIndexes(videos.length, activeIndex));
-    setOrderIndex(0);
+    // 2. Flip the active buffer to instantly show the preloaded video
+    setActiveBuffer((prev) => (prev === 0 ? 1 : 0));
   };
 
+  // Play the currently active buffer when it changes
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !activeVideo) return;
+    const activeRef = activeBuffer === 0 ? videoRef0.current : videoRef1.current;
+    if (activeRef) {
+      activeRef.play().catch(() => undefined);
+    }
+  }, [activeBuffer, currentIndex, playbackOrder.length]);
 
-    video.load();
-    video.play().catch(() => undefined);
-  }, [activeVideo]);
+  // Avoid competing with the initial video request on a cold page load. Once
+  // playback has started, allow the hidden buffer to download the next video.
+  useEffect(() => {
+    if (!preloadNext) return;
+
+    const nextRef = activeBuffer === 0 ? videoRef1.current : videoRef0.current;
+    nextRef?.load();
+  }, [activeBuffer, nextIndex, preloadNext]);
+
+  // Keep mute state synced across both videos
+  useEffect(() => {
+    if (videoRef0.current) videoRef0.current.muted = isMuted;
+    if (videoRef1.current) videoRef1.current.muted = isMuted;
+  }, [isMuted]);
+
+  if (playbackOrder.length === 0) return null;
 
   return (
-    <>
+    <div className={`relative ${className}`}>
+      {/* Video Buffer 0 */}
       <video
-        ref={videoRef}
-        key={activeVideo}
-        src={activeVideo}
+        ref={videoRef0}
+        src={src0}
         aria-label={label}
-        autoPlay
+        autoPlay={activeBuffer === 0}
         muted={isMuted}
         playsInline
-        preload="auto"
-        onEnded={playNextVideo}
-        onError={playNextVideo}
-        onStalled={playNextVideo}
-        className={className}
-      >
-        Your browser does not support the video tag.
-      </video>
+        preload={activeBuffer === 0 || preloadNext ? "auto" : "metadata"}
+        onPlaying={() => {
+          if (activeBuffer === 0) setPreloadNext(true);
+        }}
+        onEnded={() => { if (activeBuffer === 0) handleVideoEnd(); }}
+        onError={() => { if (activeBuffer === 0) handleVideoEnd(); }}
+        className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${
+          activeBuffer === 0 ? "opacity-100 z-10" : "opacity-0 z-0"
+        }`}
+      />
+      
+      {/* Video Buffer 1 */}
+      <video
+        ref={videoRef1}
+        src={src1}
+        aria-label={label}
+        autoPlay={activeBuffer === 1}
+        muted={isMuted}
+        playsInline
+        preload={activeBuffer === 1 || preloadNext ? "auto" : "metadata"}
+        onPlaying={() => {
+          if (activeBuffer === 1) setPreloadNext(true);
+        }}
+        onEnded={() => { if (activeBuffer === 1) handleVideoEnd(); }}
+        onError={() => { if (activeBuffer === 1) handleVideoEnd(); }}
+        className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${
+          activeBuffer === 1 ? "opacity-100 z-10" : "opacity-0 z-0"
+        }`}
+      />
+
       <button
         type="button"
         aria-label={isMuted ? `Unmute ${label}` : `Mute ${label}`}
-        onClick={() => setIsMuted((currentValue) => !currentValue)}
-        className="absolute bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-md transition-colors duration-300 hover:border-[#0000FF] hover:bg-[#0000FF]"
+        onClick={(e) => {
+          e.preventDefault();
+          setIsMuted((prev) => !prev);
+        }}
+        className="absolute bottom-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-md transition-colors duration-300 hover:border-[#0000FF] hover:bg-[#0000FF]"
       >
         <AudioIcon size={18} strokeWidth={2} />
       </button>
-    </>
+    </div>
   );
 }
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function ServiceVideoShowcase({
   motionReady = true,
@@ -196,7 +232,7 @@ export default function ServiceVideoShowcase({
           <PlaylistVideo
             videos={horizontalVideos}
             label="Horizontal service video reel"
-            className="aspect-video h-full w-full object-contain"
+            className="aspect-video w-full"
           />
         </motion.div>
 
@@ -207,7 +243,7 @@ export default function ServiceVideoShowcase({
           <PlaylistVideo
             videos={verticalVideos}
             label="Vertical service video reel"
-            className="aspect-[9/16] h-full w-full object-contain"
+            className="aspect-[9/16] w-full"
           />
         </motion.div>
       </motion.div>

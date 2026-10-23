@@ -54,7 +54,7 @@ const policySections = [
   {
     title: "Contact",
     body: [
-      "For privacy-related questions or requests, email us at connectadvertoads@gmail.com.",
+      "For privacy-related questions or requests, email us at connectadverto@gmail.com.",
       "We may update this Privacy Policy from time to time. The latest version will be posted on this page.",
     ],
   },

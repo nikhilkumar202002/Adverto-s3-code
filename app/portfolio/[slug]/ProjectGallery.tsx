@@ -71,6 +71,8 @@ function GalleryItem({ image, index, title, onOpen, itemClassName = "" }: Galler
       className={`group relative w-full overflow-hidden rounded-[20px] bg-[#0A0A0A] text-left ${itemClassName}`}
       aria-label={`Open ${title} gallery image ${index + 1}`}
     >
+      {/* Dynamic gallery images need their intrinsic dimensions for masonry layout. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imageRef}
         src={image}
@@ -97,17 +99,17 @@ export default function ProjectGallery({
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const activeImage = activeIndex === null ? null : images[activeIndex];
 
-  const closeGallery = () => setActiveIndex(null);
-  const showPrevious = () => {
+  const closeGallery = useCallback(() => setActiveIndex(null), []);
+  const showPrevious = useCallback(() => {
     setActiveIndex((index) =>
       index === null ? index : (index - 1 + images.length) % images.length,
     );
-  };
-  const showNext = () => {
+  }, [images.length]);
+  const showNext = useCallback(() => {
     setActiveIndex((index) =>
       index === null ? index : (index + 1) % images.length,
     );
-  };
+  }, [images.length]);
 
   useEffect(() => {
     if (activeIndex === null) {
@@ -136,7 +138,7 @@ export default function ProjectGallery({
       document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [activeIndex]);
+  }, [activeIndex, closeGallery, showNext, showPrevious]);
 
   return (
     <>
@@ -191,6 +193,7 @@ export default function ProjectGallery({
           ) : null}
 
           <div className="flex h-full w-full max-w-6xl flex-col items-center justify-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={activeImage}
               alt={`${title} gallery ${activeIndex + 1}`}

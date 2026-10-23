@@ -1,12 +1,12 @@
 export const footerData = {
   quickLinks: [
     { label: "Home", href: "/" },
-    { label: "About Us", href: "/about" },
-    { label: "Services", href: "/services" },
+    { label: "About Us", href: "/about-us" },
+    { label: "Services", href: "/service" },
     { label: "Portfolio", href: "/portfolio" },
     { label: "Testimonials", href: "/testimonials" },
     { label: "Blog", href: "/blog" },
-    { label: "Contact Us", href: "/contact" },
+    { label: "Contact Us", href: "/contact-us" },
   ],
   services: [
     { label: "Brand Consulting", href: "/services/branding" },
@@ -15,7 +15,7 @@ export const footerData = {
     { label: "Media Production", href: "/services/video" },
   ],
   company: [
-    { label: "Our Team", href: "/team" },
+    { label: "Our Team", href: "/our-team" },
     { label: "Careers", href: "/careers" },
     { label: "Privacy Policy", href: "/privacy-policy" },
     { label: "Terms & Conditions", href: "/terms-and-conditions" },

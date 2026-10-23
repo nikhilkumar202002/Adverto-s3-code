@@ -5,6 +5,8 @@
 /* ── Shell ──────────────────────────────────────────────────────── */
 .banner {
   position: relative;
+  z-index: 0;
+  isolation: isolate;
   width: 100%;
   height: calc(100vh + (var(--banner-steps) * 64vh));
   min-height: 100vh;
@@ -179,24 +181,21 @@
 
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .banner {
-    height: 100svh;
-    min-height: 620px;
-  }
-
   .wordWheel,
   .wheelWord {
     will-change: auto;
   }
-}
-@media (max-width: 768px) {
+
   .banner {
-    height: calc(100vh + (var(--banner-steps) * 38vh));
-    min-height: 100vh;
+    height: calc(100svh + (var(--banner-steps) * 38svh));
+    min-height: 100svh;
   }
 
   .bannerFrame {
-    height: 100vh;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    height: 100svh;
     min-height: 0;
   }
 
@@ -239,8 +238,8 @@
 
 @media (max-width: 480px) {
   .banner {
-    height: calc(100vh + (var(--banner-steps) * 34vh));
-    min-height: 100vh;
+    height: calc(100svh + (var(--banner-steps) * 34svh));
+    min-height: 100svh;
   }
 
   .wheelWord {

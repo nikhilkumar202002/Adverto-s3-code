@@ -104,7 +104,7 @@ const moreProjectsBase = [
     slug: "water-can",
     title: "Water Can",
     subtitle: "Branding · 2024",
-    image: "/case-studies/WATER_CAN/Cover/cover copy.webp",
+    image: "/case-studies/WATER_CAN/Cover/water-cover.webp",
   },
   {
     id: "ayan",

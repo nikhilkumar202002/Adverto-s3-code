@@ -27,11 +27,31 @@ export default function HeroBanner() {
   const wordRefs = useRef([]);
 
   useEffect(() => {
+    let refreshFrame = 0;
+    let layoutObserver;
+    const refreshScrollTrigger = () => {
+      window.cancelAnimationFrame(refreshFrame);
+      refreshFrame = window.requestAnimationFrame(() => ScrollTrigger.refresh());
+    };
+
     const ctx = gsap.context(() => {
       const words = wordRefs.current.filter(Boolean);
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
       const slotGap = isMobile ? 208 : 154;
-
+      const getViewportHeight = () =>
+        window.visualViewport?.height ?? window.innerHeight;
+      const getBannerStart = () => {
+        if (!bannerRef.current) return 0;
+        return bannerRef.current.getBoundingClientRect().top + window.scrollY;
+      };
+      const getBannerEnd = () => {
+        if (!bannerRef.current) return 0;
+        const frame = bannerRef.current.firstElementChild;
+        const frameHeight = frame?.getBoundingClientRect().height ?? getViewportHeight();
+        return getBannerStart() + bannerRef.current.offsetHeight - frameHeight;
+      };
+      const getMobileStart = () => getBannerStart() + getViewportHeight() * 0.12;
+      const getMobileEnd = () => getBannerEnd();
       if (!words.length) return;
 
       gsap.set(words, {
@@ -45,47 +65,48 @@ export default function HeroBanner() {
         gsap.set(photoRef.current, { scale: 1, filter: "none" });
         gsap.set(wordWheelRef.current, { opacity: 1, y: 0, rotateX: 0 });
         gsap.set(arrowRef.current, { opacity: 1, y: 0 });
-        return;
+      } else {
+        /* ── Entrance animation ───────────────────── */
+        const entranceTl = gsap.timeline({
+          defaults: { ease: "expo.out" },
+          scrollTrigger: {
+            id: "hero-banner-entrance",
+            trigger: bannerRef.current,
+            start: "top 72%",
+            once: true,
+          },
+        });
+        entranceTl
+          .fromTo(
+            photoRef.current,
+            { scale: 1.12, filter: "blur(14px)" },
+            { scale: 1, filter: "blur(0px)", duration: 1.6 },
+            0
+          )
+          .fromTo(
+            wordWheelRef.current,
+            { opacity: 0, y: 28, rotateX: -18 },
+            { opacity: 1, y: 0, rotateX: 0, duration: 1.1 },
+            0.5
+          )
+          .fromTo(
+            arrowRef.current,
+            { opacity: 0, y: -10 },
+            { opacity: 1, y: 0, duration: 0.5 },
+            1.6
+          );
       }
-
-      /* ── Entrance animation ───────────────────── */
-      const entranceTl = gsap.timeline({
-        defaults: { ease: "expo.out" },
-        scrollTrigger: {
-          id: "hero-banner-entrance",
-          trigger: bannerRef.current,
-          start: "top 72%",
-          once: true,
-        },
-      });
-      entranceTl
-        .fromTo(
-          photoRef.current,
-          { scale: 1.12, filter: "blur(14px)" },
-          { scale: 1, filter: "blur(0px)", duration: 1.6 },
-          0
-        )
-        .fromTo(
-          wordWheelRef.current,
-          { opacity: 0, y: 28, rotateX: -18 },
-          { opacity: 1, y: 0, rotateX: 0, duration: 1.1 },
-          0.5
-        )
-        .fromTo(
-          arrowRef.current,
-          { opacity: 0, y: -10 },
-          { opacity: 1, y: 0, duration: 0.5 },
-          1.6
-        );
 
       const stackTl = gsap.timeline({
         scrollTrigger: {
           id: "hero-banner-stack",
           trigger: bannerRef.current,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 1.25,
+          start: isMobile ? getMobileStart : getBannerStart,
+          end: isMobile ? getMobileEnd : getBannerEnd,
+          scrub: isMobile ? true : 1.25,
+          fastScrollEnd: isMobile,
           invalidateOnRefresh: true,
+          onLeaveBack: () => stackTl.progress(0),
         },
       });
 
@@ -109,6 +130,10 @@ export default function HeroBanner() {
         });
       });
 
+      // Keep the final word centered long enough to be read before the sticky
+      // frame releases into the Team section.
+      stackTl.to({}, { duration: isMobile ? 0.8 : 0.45 });
+
       stackTl.to(
         arrowRef.current,
         { opacity: 0, y: 14, duration: 0.24, ease: "none" },
@@ -117,7 +142,24 @@ export default function HeroBanner() {
 
     }, bannerRef);
 
-    return () => ctx.revert();
+    window.addEventListener("load", refreshScrollTrigger);
+    document.fonts?.ready.then(refreshScrollTrigger).catch(() => undefined);
+    const main = bannerRef.current?.closest("main");
+    if (main && "ResizeObserver" in window) {
+      layoutObserver = new ResizeObserver(() => {
+        const bannerTop = bannerRef.current?.getBoundingClientRect().top ?? 0;
+        if (bannerTop > 0) refreshScrollTrigger();
+      });
+      layoutObserver.observe(main);
+    }
+    refreshFrame = window.requestAnimationFrame(refreshScrollTrigger);
+
+    return () => {
+      window.cancelAnimationFrame(refreshFrame);
+      window.removeEventListener("load", refreshScrollTrigger);
+      layoutObserver?.disconnect();
+      ctx.revert();
+    };
   }, []);
 
   return (

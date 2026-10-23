@@ -106,7 +106,7 @@ export default function FaqSection() {
             <StaticHeading />
             <p className="text-white/50 text-[15px] md:text-[16px] lg:text-[17px] leading-[1.5]">
               Not finding what you need? Reach out directly <br className="hidden md:block" />
-              at <a href="mailto:connectadvertoads@gmail.com" className="break-words text-white hover:text-[#0000FF] transition-colors">connectadvertoads@gmail.com</a>
+              at <a href="mailto:connectadverto@gmail.com" className="break-words text-white hover:text-[#0000FF] transition-colors">connectadverto@gmail.com</a>
             </p>
           </motion.div>
 

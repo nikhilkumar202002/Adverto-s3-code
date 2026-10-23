@@ -1,8 +1,9 @@
-import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 import Container from "../components/common/Container";
 import InnerBannerHeading from "../components/common/InnerBannerHeading";
 import { campaignProjects } from "../data/campaigns";
+import CampaignNavigationLink from "./CampaignNavigationLink";
 
 export const metadata = {
   title: "Campaigns | Adverto",
@@ -39,21 +40,20 @@ export default function CampaignsPage() {
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {campaignProjects.map((campaign, index) => (
-            <Link
+            <CampaignNavigationLink
               key={campaign.slug}
-              href={`/campigns/${campaign.slug}`}
-              scroll={false}
-              data-scroll-card-id={`campaign-${campaign.slug}`}
-              data-campaign-card={campaign.slug}
+              slug={campaign.slug}
               className="group relative overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A]"
             >
               <div className="aspect-[4/3] overflow-hidden bg-white/5">
-                <img
+                <Image
                   src={campaign.heroImage}
                   alt={campaign.title}
                   loading={index === 0 ? "eager" : "lazy"}
                   fetchPriority={index === 0 ? "high" : "auto"}
                   decoding="async"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
@@ -74,7 +74,7 @@ export default function CampaignsPage() {
                   <ArrowUpRight size={18} />
                 </span>
               </div>
-            </Link>
+            </CampaignNavigationLink>
           ))}
         </div>
       </Container>

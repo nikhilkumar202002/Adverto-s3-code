@@ -61,7 +61,7 @@ export default function AboutUsPage() {
       <section
         id="hero"
         data-scroll-section-id="hero"
-        className="relative flex min-h-[680px] items-end overflow-hidden border-b border-white/5 pb-[40px] min-[1320px]:min-h-[100vh]"
+        className="relative flex min-h-170 items-end overflow-hidden border-b border-white/5 pb-10 min-[1320px]:min-h-screen"
         data-navbar-transparent
       >
         <div

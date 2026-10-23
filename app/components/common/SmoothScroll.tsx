@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import Lenis from "lenis";
+import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export default function SmoothScroll({ children }: { children: ReactNode }) {
@@ -28,8 +29,9 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       };
     }
 
+    // 1. Turn off autoRaf to stop independent frame looping
     const lenis = new Lenis({
-      autoRaf: true,
+      autoRaf: false,
       anchors: true,
       lerp: 0.1,
       wheelMultiplier: 1,
@@ -37,17 +39,22 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       syncTouch: false,
     });
 
-    const updateScrollTrigger = () => {
-      if (ScrollTrigger.getAll().length > 0) {
-        ScrollTrigger.update();
-      }
+    lenis.on("scroll", ScrollTrigger.update);
+
+    // 2. Synchronize Lenis with GSAP's master ticker
+    const updateLenis = (time: number) => {
+      lenis.raf(time * 1000);
     };
+    gsap.ticker.add(updateLenis);
+    gsap.ticker.lagSmoothing(0);
+
     const scrollToPosition = (top = 0, left = 0) => {
       if (typeof window === "undefined") return;
       window.scrollTo(left, top);
       lenis.scrollTo(top, { immediate: true, force: true });
       window.requestAnimationFrame(() => ScrollTrigger.refresh());
     };
+
     const handleScrollTo = (event: Event) => {
       const { left = 0, top = 0, behavior = "auto" } =
         (event as CustomEvent<{ left?: number; top?: number; behavior?: ScrollBehavior }>).detail ?? {};
@@ -60,15 +67,23 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       scrollToPosition(top, left);
     };
 
-    lenis.on("scroll", updateScrollTrigger);
+    // 3. Listen for scroll lock/unlock events dispatched by the Preloader
+    const lockScroll = () => lenis.stop();
+    const unlockScroll = () => lenis.start();
+
     window.addEventListener("adverto:scroll-to", handleScrollTo);
+    window.addEventListener("adverto:lock-scroll", lockScroll);
+    window.addEventListener("adverto:unlock-scroll", unlockScroll);
 
     return () => {
+      gsap.ticker.remove(updateLenis);
       window.removeEventListener("adverto:scroll-to", handleScrollTo);
-      lenis.off("scroll", updateScrollTrigger);
+      window.removeEventListener("adverto:lock-scroll", lockScroll);
+      window.removeEventListener("adverto:unlock-scroll", unlockScroll);
+      lenis.off("scroll", ScrollTrigger.update);
       lenis.destroy();
     };
   }, []);
 
-  return children;
+  return <>{children}</>;
 }

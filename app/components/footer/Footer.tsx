@@ -98,7 +98,7 @@ export default function Footer() {
             Let<span className="text-[#0000FF]">&apos;</span>s Talk
           </h2>
 
-          <Button href="/contact" className="mt-8 md:mt-12 min-[1301px]:mt-20">
+          <Button href="/contact-us" className="mt-8 md:mt-12 min-[1301px]:mt-20">
             Contact Us
           </Button>
         </div>

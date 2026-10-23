@@ -88,12 +88,15 @@ export default async function CampaignPage({ params }) {
 
         <Reveal y={36} amount={0.08} once waitForPageTransition>
           <div className="mt-[30px] overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A]">
-            <img
+            <Image
               src={campaign.heroImage}
               alt={campaign.title}
               loading="eager"
               fetchPriority="high"
               decoding="async"
+              width={1600}
+              height={900}
+              unoptimized
               className="h-auto w-full object-cover"
             />
           </div>
@@ -179,3 +182,4 @@ export default async function CampaignPage({ params }) {
     </article>
   );
 }
+import Image from "next/image";

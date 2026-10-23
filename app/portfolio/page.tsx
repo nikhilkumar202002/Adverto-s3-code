@@ -1,6 +1,12 @@
 import PortfolioPageContent from "./PortfolioPageContent";
 import { portfolioPageProjects } from "../data/portfolio";
+import PortfolioIndexScrollReset from "./PortfolioIndexScrollReset";
 
 export default function PortfolioPage() {
-  return <PortfolioPageContent projects={portfolioPageProjects} />;
+  return (
+    <>
+      <PortfolioIndexScrollReset />
+      <PortfolioPageContent projects={portfolioPageProjects} />
+    </>
+  );
 }

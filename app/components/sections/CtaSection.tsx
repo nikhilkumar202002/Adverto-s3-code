@@ -47,7 +47,7 @@ export default function CtaSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <Button href="/contact">Start your project</Button>
+          <Button href="/contact-us">Start your project</Button>
           <Button href="/portfolio" variant="secondary">Explore Portfolio</Button>
         </motion.div>
         </Reveal>

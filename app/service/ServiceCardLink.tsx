@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 import Link from "next/link";
-import { rememberScrollPosition } from "../components/common/scrollRestoration";
+import { rememberServiceEntry } from "../components/common/scrollRestoration";
 
 type ServiceCardLinkProps = {
   children: ReactNode;
@@ -23,7 +23,7 @@ export default function ServiceCardLink({
       className={className}
       data-scroll-card-id={cardId}
       data-service-card-link={href}
-      onNavigate={rememberScrollPosition}
+      onNavigate={() => rememberServiceEntry(cardId)}
     >
       {children}
     </Link>

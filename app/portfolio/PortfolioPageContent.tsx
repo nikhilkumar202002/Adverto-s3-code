@@ -9,6 +9,7 @@ import { ArrowUpRight } from "lucide-react";
 import Container from "../components/common/Container";
 import InnerBannerHeading from "../components/common/InnerBannerHeading";
 import usePageTransitionReady from "../components/common/usePageTransitionReady";
+import { beginPortfolioProjectNavigation } from "../components/common/scrollRestoration";
 import ServiceVideoShowcase from "../service/ServiceVideoShowcase";
 
 type PortfolioProject = {
@@ -71,14 +72,14 @@ export default function PortfolioPageContent({
     <section
       id="portfolio-grid"
       data-scroll-section-id="portfolio-grid"
-      className="relative bg-[#050505] pb-[25px] pt-32 md:pb-32 md:pt-40"
+      className="relative bg-[#050505] pb-6.25 pt-32 md:pb-32 md:pt-40"
     >
       <Container>
         <div className="mb-20 md:mb-28">
           <ServiceVideoShowcase motionReady={motionReady} />
         </div>
 
-        <div className="mb-[25px] grid grid-cols-1 gap-8 md:mb-14 md:grid-cols-12">
+        <div className="mb-6.25 grid grid-cols-1 gap-8 md:mb-14 md:grid-cols-12">
           <motion.div
             className="md:col-span-12 lg:col-span-10"
             initial="hidden"
@@ -86,8 +87,8 @@ export default function PortfolioPageContent({
             viewport={sectionRevealViewport}
             variants={fadeFromLeft}
           >
-            <p className="mb-3 flex items-center gap-3 text-[14px] uppercase tracking-[0.1em] text-[#0000FF]">
-              <span className="h-[1px] w-[30px] bg-[#0000FF]" />
+            <p className="mb-3 flex items-center gap-3 text-[14px] uppercase tracking-widest text-[#0000FF]">
+              <span className="h-px w-7.5 bg-[#0000FF]" />
               Portfolio
             </p>
             <InnerBannerHeading
@@ -95,7 +96,7 @@ export default function PortfolioPageContent({
               active={motionReady}
               revealOnScroll
               variant="custom"
-              className="max-w-[720px] text-[45px] font-medium leading-[0.94] text-[#EDEDED] min-[720px]:text-[50px] min-[920px]:text-[55px] lg:max-w-[1100px] lg:text-[76px] min-[1320px]:text-[100px]"
+              className="max-w-180 text-[clamp(34px,10.7vw,45px)] font-medium leading-[0.94] text-[#EDEDED] [&>span]:whitespace-nowrap min-[720px]:text-[50px] min-[920px]:text-[55px] lg:max-w-275 lg:text-[76px] min-[1320px]:text-[100px]"
             />
           </motion.div>
         </div>
@@ -116,9 +117,12 @@ export default function PortfolioPageContent({
                 scroll
                 data-scroll-card-id={`portfolio-${project.slug}`}
                 data-works-project={project.slug}
-                className="group relative block overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A] [contain:layout_paint_style]"
+                onNavigate={() =>
+                  beginPortfolioProjectNavigation(`portfolio-${project.slug}`)
+                }
+                className="group relative block contain-[layout_paint_style] overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A]"
               >
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="relative aspect-4/3 overflow-hidden">
                   <Image
                     src={project.heroImage}
                     alt={project.title}
@@ -130,7 +134,7 @@ export default function PortfolioPageContent({
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 flex items-end justify-end gap-5 p-5 md:p-7">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0000FF] text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     <ArrowUpRight size={18} />

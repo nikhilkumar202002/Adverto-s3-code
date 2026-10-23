@@ -69,7 +69,7 @@ const termsSections = [
     title: "Updates To These Terms",
     body: [
       "We may update these Terms & Conditions from time to time. The latest version will be posted on this page.",
-      "For questions about these terms, contact us at connectadvertoads@gmail.com.",
+      "For questions about these terms, contact us at connectadverto@gmail.com.",
     ],
   },
 ];

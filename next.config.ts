@@ -3,9 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Transpile GSAP for compatibility
   transpilePackages: ["gsap"],
-  // Export static HTML to `out/` when building
+  // Generate a deployable static site in the `out` directory.
   output: "export",
-  // Disable Image Optimization for static export
+  trailingSlash: true,
   images: {
     unoptimized: true,
     remotePatterns: [

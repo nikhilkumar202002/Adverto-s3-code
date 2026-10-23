@@ -39,6 +39,8 @@
 *.mp3
 *.wav
 *.zip
+!/public/client-logos/
+!/public/client-logos/*.webp
 
 # debug
 npm-debug.log*

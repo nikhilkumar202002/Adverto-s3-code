@@ -1,8 +1,14 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { moreProjects } from "../../data/moreProjects";
+import {
+  readCurrentScrollSnapshot,
+  beginPortfolioProjectNavigation,
+  restoreSliderElement,
+} from "./scrollRestoration";
 
 interface Project {
   id: number | string;
@@ -22,13 +28,51 @@ export default function InfiniteProjectSlider({
   projects = moreProjectsDataset,
 }: InfiniteProjectSliderProps) {
   const sliderProjects = projects.length > 0 ? projects : moreProjectsDataset;
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsActive(entry.isIntersecting && !document.hidden),
+      { rootMargin: "150px 0px", threshold: 0.01 },
+    );
+    const handleVisibilityChange = () => {
+      const rect = slider.getBoundingClientRect();
+      setIsActive(
+        !document.hidden &&
+          rect.bottom >= -150 &&
+          rect.top <= window.innerHeight + 150,
+      );
+    };
+
+    observer.observe(slider);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    track.dataset.scrollSliderHydrated = "true";
+    const snapshot = readCurrentScrollSnapshot();
+    if (snapshot) restoreSliderElement(snapshot, "home-projects", track);
+  }, []);
 
   return (
     <div
+      ref={sliderRef}
       id="featured-projects"
       data-scroll-section-id="featured-projects"
       data-scroll-slider-id="home-projects"
-      className="project-marquee w-full overflow-hidden"
+      className={`project-marquee w-full overflow-hidden ${isActive ? "project-marquee--active" : ""}`}
     >
       <div className="mb-4 flex items-center justify-between pl-1.5 md:pl-2">
         <p className="text-[#0000FF] uppercase text-[12px] md:text-[14px] tracking-[0.1em] flex items-center gap-3">
@@ -57,6 +101,23 @@ export default function InfiniteProjectSlider({
           contain: layout paint;
           transform: translate3d(0, 0, 0);
           will-change: transform;
+          animation-play-state: paused;
+        }
+
+        .project-marquee--active .project-marquee__track {
+          animation-play-state: running;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+          .project-marquee--active:hover .project-marquee__track {
+            animation-play-state: paused;
+          }
+        }
+
+        @media (max-width: 767px), (pointer: coarse) {
+          .project-marquee__track {
+            animation-duration: 68s;
+          }
         }
 
         .project-marquee__card {
@@ -81,12 +142,16 @@ export default function InfiniteProjectSlider({
       `}</style>
 
       <div
+        ref={trackRef}
         className="project-marquee__track flex w-max items-center"
         data-scroll-slider-track
         data-home-project-track
       >
         {[...Array(2)].map((_, setIndex) => (
-          <div key={setIndex} className="flex shrink-0 items-center">
+          <div
+            key={setIndex}
+            className={`flex shrink-0 items-center ${setIndex === 1 ? "project-marquee__duplicate" : ""}`}
+          >
             {sliderProjects.map((project, index) => (
               <Link
                 href={`/portfolio/${project.slug || project.id}`}
@@ -96,6 +161,9 @@ export default function InfiniteProjectSlider({
                 data-scroll-card-id={`project-${project.slug || project.id}`}
                 data-scroll-slider-card-id={`project-${project.slug || project.id}`}
                 data-home-project-card={String(project.slug || project.id)}
+                onNavigate={() =>
+                  beginPortfolioProjectNavigation(`project-${project.slug || project.id}`)
+                }
                 className="project-marquee__card group relative mx-1.5 md:mx-2 h-[142px] w-[210px] sm:h-[160px] sm:w-[232px] md:h-[180px] md:w-[260px] overflow-hidden rounded-[12px] md:rounded-[15px] border border-b-2 border-transparent bg-[#1A1A1A] transition-colors duration-300 ease-out"
               >
                 <div className="absolute inset-0 bg-[#0A0A0A] z-0" />

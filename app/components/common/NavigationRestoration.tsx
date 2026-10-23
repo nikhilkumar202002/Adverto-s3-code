@@ -49,7 +49,12 @@ export default function NavigationRestoration() {
     if (!("scrollRestoration" in window.history)) return;
 
     const previous = window.history.scrollRestoration;
-    window.history.scrollRestoration = "manual";
+    const useNativeMobileRestoration = window.matchMedia(
+      "(max-width: 767px), (pointer: coarse)",
+    ).matches;
+    window.history.scrollRestoration = useNativeMobileRestoration
+      ? "auto"
+      : "manual";
 
     return () => {
       window.history.scrollRestoration = previous;
@@ -57,17 +62,19 @@ export default function NavigationRestoration() {
   }, []);
 
   useEffect(() => {
-    let frameId = 0;
+    let saveTimer = 0;
 
     const saveActiveEntry = () => {
+      window.clearTimeout(saveTimer);
+      saveTimer = 0;
       if (activeKey.current && activeUrl.current) {
         saveScrollSnapshot(activeKey.current, activeUrl.current);
       }
     };
 
     const handleScroll = () => {
-      window.cancelAnimationFrame(frameId);
-      frameId = window.requestAnimationFrame(saveActiveEntry);
+      window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(saveActiveEntry, 180);
     };
 
     const handleClick = (event: MouseEvent) => {
@@ -114,7 +121,7 @@ export default function NavigationRestoration() {
     document.addEventListener("click", handleClick, true);
 
     return () => {
-      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(saveTimer);
       saveActiveEntry();
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("pagehide", saveActiveEntry);

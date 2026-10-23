@@ -27,7 +27,7 @@ export default function AboutHeroTitle() {
 
   return (
     <motion.div
-      className="max-w-[760px]"
+      className="max-w-190"
       initial="hidden"
       animate={isReady ? "visible" : "hidden"}
       variants={titleReveal}

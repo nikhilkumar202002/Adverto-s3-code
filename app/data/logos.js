@@ -1,15 +1,15 @@
 import React from "react";
-import { s3Logo } from "./s3Assets.js";
-
+import Image from "next/image";
 function ImageLogo({ src, alt = "logo", size = 48, className = "", ...props }) {
   return (
-    <img
+    <Image
       src={src}
       alt={alt}
       width={size}
       height={size}
       loading="lazy"
       decoding="async"
+      fetchPriority="low"
       className={className}
       style={{ objectFit: "contain" }}
       {...props}
@@ -68,7 +68,11 @@ const logoFiles = [
   "LOGOS-12.png",
 ].map((fileName) => ({
   name: fileName.replace(/\.[^.]+$/, "").replace(/[@_-]/g, " "),
-  src: s3Logo(fileName),
+  src: `/client-logos/${fileName
+    .replace(/\.[^.]+$/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}.webp`,
 }));
 
 export const clientLogos = logoFiles.map((logo, idx) => ({

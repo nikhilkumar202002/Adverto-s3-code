@@ -2,10 +2,16 @@
 
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   createPreloaderTimeline,
   type PreloaderRefs,
 } from "../../lib/preloaderTimeline";
+
+// Explicitly register ScrollTrigger to prevent internal GSAP initialization errors
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 type UsePreloaderResult = {
   isVisible: boolean;
@@ -22,11 +28,6 @@ declare global {
   }
 }
 
-function markPreloaderComplete() {
-  window.__advertoPreloaderComplete = true;
-  window.dispatchEvent(new Event("adverto:preloader-complete"));
-}
-
 export default function usePreloader(): UsePreloaderResult {
   const containerRef = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLDivElement>(null);
@@ -36,8 +37,6 @@ export default function usePreloader(): UsePreloaderResult {
   const [isVisible, setIsVisible] = useState(true);
 
   useLayoutEffect(() => {
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
     const container = containerRef.current;
     const background = backgroundRef.current;
     const logoGroup = logoGroupRef.current;
@@ -45,13 +44,15 @@ export default function usePreloader(): UsePreloaderResult {
     const circle = circleRef.current;
     let context: gsap.Context | undefined;
 
+    // 1. Disable native DOM scrolling immediately on mount
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
 
-    const restoreScroll = () => {
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-    };
+    // 2. Limit ScrollTrigger auto-refresh to prevent layout thrashing
+    ScrollTrigger.config({ autoRefreshEvents: "visibilitychange,load" });
+
+    // 3. Dispatch event to lock Lenis smooth scroll if active
+    window.dispatchEvent(new CustomEvent("adverto:lock-scroll"));
 
     if (container && background && logoGroup && rectangle && circle) {
       const refs: PreloaderRefs = {
@@ -69,8 +70,19 @@ export default function usePreloader(): UsePreloaderResult {
         const timeline = createPreloaderTimeline({
           refs,
           onComplete: () => {
-            markPreloaderComplete();
-            restoreScroll();
+            // Mark preloader complete globally
+            window.__advertoPreloaderComplete = true;
+            window.dispatchEvent(new Event("adverto:preloader-complete"));
+            
+            // Unlock Lenis smooth scroll
+            window.dispatchEvent(new CustomEvent("adverto:unlock-scroll"));
+
+            // Restore native DOM scrolling
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
+
+            // Refresh ScrollTrigger ONLY after layout is stable and preloader is removed
+            ScrollTrigger.refresh();
             setIsVisible(false);
           },
           timeScale: prefersReducedMotion ? 2.5 : 1,
@@ -81,7 +93,9 @@ export default function usePreloader(): UsePreloaderResult {
     }
 
     return () => {
-      restoreScroll();
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      window.dispatchEvent(new CustomEvent("adverto:unlock-scroll"));
       context?.revert();
     };
   }, []);

@@ -1,12 +1,13 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import Container from "../../components/common/Container";
 import InnerBannerHeading from "../../components/common/InnerBannerHeading";
 import Reveal from "../../components/common/Reveal";
 import { portfolioPageProjects } from "../../data/portfolio";
 import ProjectGallery from "./ProjectGallery";
-import PortfolioProjectScrollReset from "./PortfolioProjectScrollReset";
+import PortfolioProjectBackLink from "./PortfolioProjectBackLink";
 
 type ProjectPageProps = {
   params: Promise<{
@@ -46,7 +47,6 @@ export default async function PortfolioProjectPage({ params }: ProjectPageProps)
 
   return (
     <article className="relative bg-[#050505] pt-28 pb-24 md:pt-36 md:pb-32">
-      <PortfolioProjectScrollReset slug={slug} />
       <Container>
         <Reveal
           x={-32}
@@ -55,14 +55,7 @@ export default async function PortfolioProjectPage({ params }: ProjectPageProps)
           once={false}
           waitForPageTransition
         >
-          <Link
-            href="/portfolio"
-            scroll={false}
-            className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 transition-colors hover:text-white"
-          >
-            <ArrowLeft size={16} />
-            Portfolio
-          </Link>
+          <PortfolioProjectBackLink />
         </Reveal>
 
         <div className="portfolio-single-header">
@@ -94,17 +87,21 @@ export default async function PortfolioProjectPage({ params }: ProjectPageProps)
 
         <Reveal y={36} amount={0.08} once waitForPageTransition>
           <div className="mt-[30px] h-[100svh] overflow-hidden rounded-[20px] border border-white/10 bg-[#0A0A0A] max-[1380px]:h-auto">
-            <img
+            <Image
               src={project.heroImage}
               alt={project.title}
-              loading="lazy"
+              loading="eager"
+              fetchPriority="high"
               decoding="async"
+              width={1600}
+              height={900}
+              unoptimized
               className="h-full w-full object-cover max-[1380px]:h-auto"
             />
           </div>
         </Reveal>
 
-        <div className="mt-[6px] grid grid-cols-2 gap-[6px] xl:grid-cols-3">
+        <div className="mt-2 grid grid-cols-2 gap-2 md:mt-1.5 md:gap-1.5 xl:grid-cols-3">
           {[
             ["Category", project.category],
             ["Year", project.year],
@@ -112,7 +109,7 @@ export default async function PortfolioProjectPage({ params }: ProjectPageProps)
           ].map(([label, value], index) => (
             <Reveal
               key={label}
-              className={index === 2 ? "col-span-2 xl:col-span-1" : ""}
+              className={`h-full ${index === 2 ? "col-span-2 xl:col-span-1" : ""}`}
               delay={index * 0.06}
               duration={0.55}
               y={24}
@@ -120,11 +117,13 @@ export default async function PortfolioProjectPage({ params }: ProjectPageProps)
               once
               waitForPageTransition
             >
-              <div className="bg-[#080808] p-6 md:p-8">
-                <p className="mb-2 text-xs uppercase tracking-[0.18em] text-white/35">
+              <div className="h-full min-h-24 rounded-[16px] border border-white/5 bg-[#080808] p-4 md:min-h-0 md:rounded-[20px] md:p-8">
+                <p className="mb-1.5 text-[10px] uppercase tracking-[0.16em] text-white/40 md:mb-2 md:text-xs md:tracking-[0.18em]">
                   {label}
                 </p>
-                <p className="text-xl font-medium text-white">{value}</p>
+                <p className="text-lg font-medium leading-[1.35] text-white md:text-xl md:leading-snug">
+                  {value}
+                </p>
               </div>
             </Reveal>
           ))}

@@ -3,6 +3,10 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import {
+  consumeServiceEntry,
+  enableNativeBackRestoration,
+} from "../../components/common/scrollRestoration";
 
 export default function ServiceDetailBackLink() {
   const router = useRouter();
@@ -12,12 +16,18 @@ export default function ServiceDetailBackLink() {
       document.referrer.length > 0 &&
       new URL(document.referrer).origin === window.location.origin;
 
-    if (window.history.length > 1 && hasSameOriginReferrer) {
+    const enteredFromServiceLink = consumeServiceEntry();
+
+    if (
+      window.history.length > 1 &&
+      (enteredFromServiceLink || hasSameOriginReferrer)
+    ) {
+      enableNativeBackRestoration();
       router.back();
       return;
     }
 
-    router.push("/services", { scroll: false });
+    router.push("/service", { scroll: false });
   }, [router]);
 
   return (

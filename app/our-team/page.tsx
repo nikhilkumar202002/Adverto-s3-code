@@ -87,7 +87,7 @@ export default function OurTeamPage() {
             alt="Adverto team"
             width={1500}
             height={1875}
-            loading="lazy"
+            fetchPriority="high"
             sizes="100vw"
             className="h-auto w-full md:hidden"
           />
@@ -96,7 +96,7 @@ export default function OurTeamPage() {
             alt="Adverto team"
             width={1920}
             height={1080}
-            loading="lazy"
+            fetchPriority="high"
             sizes="100vw"
             className="hidden h-auto w-full md:block"
           />

@@ -4,6 +4,20 @@ const STORAGE_KEY = "adverto:scroll-entries:v2";
 const HISTORY_KEY = "__advertoScrollKey";
 const MAX_ENTRIES = 30;
 const MAX_AGE_MS = 2 * 60 * 60 * 1000;
+const PORTFOLIO_ENTRY_KEY = "adverto:portfolio-entry";
+const SERVICE_ENTRY_KEY = "adverto:service-entry";
+const SERVICE_RETURN_KEY = "adverto:service-return-target";
+const SERVICE_RETURN_MAX_AGE_MS = 10 * 60 * 1000;
+
+export type ServiceReturnTarget = {
+  anchorId: string;
+  anchorViewportTop: number;
+  scrollY: number;
+  sourcePath: string;
+  savedAt: number;
+};
+
+const normalizePath = (path: string) => path.replace(/\/+$/, "") || "/";
 
 type SliderSnapshot = {
   progress: number;
@@ -15,6 +29,8 @@ export type ScrollSnapshot = {
   x: number;
   y: number;
   documentHeight: number;
+  anchorId?: string;
+  anchorViewportTop?: number;
   sliders: Record<string, SliderSnapshot>;
   savedAt: number;
 };
@@ -115,9 +131,18 @@ const captureSliders = () => {
   return snapshots;
 };
 
-export const saveScrollSnapshot = (key: string, url = `${window.location.pathname}${window.location.search}`) => {
+export const saveScrollSnapshot = (
+  key: string,
+  url = `${window.location.pathname}${window.location.search}`,
+  anchorId?: string,
+) => {
   if (!isBrowser()) return;
 
+  const anchor = anchorId
+    ? document.querySelector<HTMLElement>(
+        `[data-scroll-card-id="${CSS.escape(anchorId)}"]`,
+      )
+    : null;
   const store = readStore();
   store[key] = {
     key,
@@ -125,6 +150,8 @@ export const saveScrollSnapshot = (key: string, url = `${window.location.pathnam
     x: window.scrollX,
     y: window.scrollY,
     documentHeight: document.documentElement.scrollHeight,
+    anchorId: anchor ? anchorId : undefined,
+    anchorViewportTop: anchor?.getBoundingClientRect().top,
     sliders: captureSliders(),
     savedAt: Date.now(),
   };
@@ -135,6 +162,9 @@ export const readScrollSnapshot = (key: string | null) => {
   if (!key) return null;
   return readStore()[key] ?? null;
 };
+
+export const readCurrentScrollSnapshot = () =>
+  readScrollSnapshot(getHistoryScrollKey());
 
 export const hasSnapshotForCurrentHistoryEntry = () => {
   if (!isBrowser()) return false;
@@ -153,18 +183,29 @@ const animationDurationMs = (track: HTMLElement) => {
   return raw.endsWith("ms") ? value : value * 1000;
 };
 
+export const restoreSliderElement = (
+  snapshot: ScrollSnapshot,
+  id: string,
+  track: HTMLElement,
+) => {
+  const sliderSnapshot = snapshot.sliders[id];
+  if (!sliderSnapshot) return;
+
+  const duration = animationDurationMs(track);
+  if (duration > 0) {
+    track.style.animationDelay = `${-(duration * sliderSnapshot.progress)}ms`;
+  }
+};
+
 export const restoreSliderSnapshots = (snapshot: ScrollSnapshot) => {
-  Object.entries(snapshot.sliders).forEach(([id, sliderSnapshot]) => {
+  Object.keys(snapshot.sliders).forEach((id) => {
     const slider = document.querySelector<HTMLElement>(
       `[data-scroll-slider-id="${CSS.escape(id)}"]`,
     );
     const track = slider?.querySelector<HTMLElement>("[data-scroll-slider-track]");
-    if (!track) return;
+    if (!track || track.dataset.scrollSliderHydrated !== "true") return;
 
-    const duration = animationDurationMs(track);
-    if (duration > 0) {
-      track.style.animationDelay = `${-(duration * sliderSnapshot.progress)}ms`;
-    }
+    restoreSliderElement(snapshot, id, track);
   });
 };
 
@@ -203,12 +244,23 @@ export const restoreScrollSnapshot = (
 
   const apply = () => {
     restoreSliderSnapshots(snapshot);
+    const anchor = snapshot.anchorId
+      ? document.querySelector<HTMLElement>(
+          `[data-scroll-card-id="${CSS.escape(snapshot.anchorId)}"]`,
+        )
+      : null;
+    const top =
+      anchor && snapshot.anchorViewportTop !== undefined
+        ? window.scrollY +
+          anchor.getBoundingClientRect().top -
+          snapshot.anchorViewportTop
+        : snapshot.y;
     window.dispatchEvent(
       new CustomEvent("adverto:scroll-to", {
-        detail: { left: snapshot.x, top: snapshot.y, behavior: "auto" },
+        detail: { left: snapshot.x, top, behavior: "auto" },
       }),
     );
-    window.scrollTo({ left: snapshot.x, top: snapshot.y, behavior: "auto" });
+    window.scrollTo({ left: snapshot.x, top, behavior: "auto" });
   };
 
   apply();
@@ -221,7 +273,14 @@ export const restoreScrollSnapshot = (
     if (cancelled) return;
 
     const height = document.documentElement.scrollHeight;
-    const atTarget = Math.abs(window.scrollY - snapshot.y) < 1;
+    const anchor = snapshot.anchorId
+      ? document.querySelector<HTMLElement>(
+          `[data-scroll-card-id="${CSS.escape(snapshot.anchorId)}"]`,
+        )
+      : null;
+    const atTarget = anchor && snapshot.anchorViewportTop !== undefined
+      ? Math.abs(anchor.getBoundingClientRect().top - snapshot.anchorViewportTop) < 1
+      : Math.abs(window.scrollY - snapshot.y) < 1;
     const heightStable = height === previousHeight;
 
     stableFrames = heightStable && relevantImagesReady() && atTarget
@@ -229,9 +288,10 @@ export const restoreScrollSnapshot = (
       : 0;
     previousHeight = height;
 
-    // Correct only actual layout movement. Reapplying because the user moved
-    // away from the target makes touch scrolling feel locked on mobile.
-    if (!heightStable) apply();
+    // Next can reset scroll after the route's layout effects. Keep correcting
+    // until the saved position is reached; the intent listeners above cancel
+    // restoration immediately when the user starts interacting.
+    if (!heightStable || !atTarget) apply();
 
     if (stableFrames >= 3 || performance.now() - startedAt >= timeoutMs) {
       apply();
@@ -256,4 +316,128 @@ export const restoreScrollSnapshot = (
 export const rememberScrollPosition = () => {
   if (!isBrowser()) return;
   saveScrollSnapshot(ensureHistoryScrollKey());
+};
+
+export const rememberPortfolioEntry = (anchorId: string) => {
+  if (!isBrowser()) return;
+
+  saveScrollSnapshot(ensureHistoryScrollKey(), undefined, anchorId);
+  try {
+    sessionStorage.setItem(PORTFOLIO_ENTRY_KEY, "true");
+  } catch {
+    // History Back still works when storage is unavailable.
+  }
+};
+
+export const beginPortfolioProjectNavigation = (anchorId: string) => {
+  if (!isBrowser()) return;
+
+  // Capture the source card before moving. Reset immediately so a slower
+  // production navigation cannot paint the destination fallback at this
+  // page's deep scroll offset before its client layout hydrates.
+  rememberPortfolioEntry(anchorId);
+  resetScrollForForwardNavigation();
+};
+
+const resetScrollForForwardNavigation = () => {
+  window.dispatchEvent(new Event("adverto:navigation-start"));
+  window.dispatchEvent(
+    new CustomEvent("adverto:scroll-to", {
+      detail: { left: 0, top: 0, behavior: "auto" },
+    }),
+  );
+  window.scrollTo({ left: 0, top: 0, behavior: "auto" });
+};
+
+export const beginForwardNavigation = (anchorId?: string) => {
+  if (!isBrowser()) return;
+
+  saveScrollSnapshot(ensureHistoryScrollKey(), undefined, anchorId);
+  resetScrollForForwardNavigation();
+};
+
+export const consumePortfolioEntry = () => {
+  if (!isBrowser()) return false;
+
+  try {
+    const hasEntry = sessionStorage.getItem(PORTFOLIO_ENTRY_KEY) === "true";
+    sessionStorage.removeItem(PORTFOLIO_ENTRY_KEY);
+    return hasEntry;
+  } catch {
+    return false;
+  }
+};
+
+export const rememberServiceEntry = (anchorId?: string) => {
+  if (!isBrowser()) return;
+
+  saveScrollSnapshot(ensureHistoryScrollKey(), undefined, anchorId);
+  try {
+    sessionStorage.setItem(SERVICE_ENTRY_KEY, "true");
+    if (anchorId) {
+      const anchor = document.querySelector<HTMLElement>(
+        `[data-scroll-card-id="${CSS.escape(anchorId)}"]`,
+      );
+      if (anchor) {
+        const target: ServiceReturnTarget = {
+          anchorId,
+          anchorViewportTop: anchor.getBoundingClientRect().top,
+          scrollY: window.scrollY,
+          sourcePath: normalizePath(window.location.pathname),
+          savedAt: Date.now(),
+        };
+        sessionStorage.setItem(SERVICE_RETURN_KEY, JSON.stringify(target));
+      }
+    }
+  } catch {
+    // History Back still works when storage is unavailable.
+  }
+};
+
+export const consumeServiceReturnTarget = (
+  expectedSourcePath: string,
+): ServiceReturnTarget | null => {
+  if (!isBrowser()) return null;
+
+  try {
+    const raw = sessionStorage.getItem(SERVICE_RETURN_KEY);
+    sessionStorage.removeItem(SERVICE_RETURN_KEY);
+    if (!raw) return null;
+
+    const target = JSON.parse(raw) as ServiceReturnTarget;
+    if (
+      !target.anchorId ||
+      normalizePath(target.sourcePath) !== normalizePath(expectedSourcePath) ||
+      !Number.isFinite(target.anchorViewportTop) ||
+      !Number.isFinite(target.scrollY) ||
+      Date.now() - target.savedAt > SERVICE_RETURN_MAX_AGE_MS
+    ) {
+      return null;
+    }
+    return target;
+  } catch {
+    return null;
+  }
+};
+
+export const consumeServiceEntry = () => {
+  if (!isBrowser()) return false;
+
+  try {
+    const hasEntry = sessionStorage.getItem(SERVICE_ENTRY_KEY) === "true";
+    sessionStorage.removeItem(SERVICE_ENTRY_KEY);
+    return hasEntry;
+  } catch {
+    return false;
+  }
+};
+
+export const enableNativeBackRestoration = () => {
+  if (!isBrowser() || !("scrollRestoration" in window.history)) return;
+
+  const previousScrollRestoration = window.history.scrollRestoration;
+  window.history.scrollRestoration = "auto";
+  window.setTimeout(() => {
+    window.history.scrollRestoration = previousScrollRestoration;
+  }, 1000);
 };

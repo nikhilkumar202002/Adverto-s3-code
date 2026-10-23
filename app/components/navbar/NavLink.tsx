@@ -17,7 +17,7 @@ export default function NavLink({
     <Link
       href={href}
       aria-current={isActive ? "page" : undefined}
-      onClick={onNavigate}
+      onNavigate={onNavigate}
       className={`group relative text-[14px] font-regular tracking-wide transition duration-300 hover:text-white ${
         isActive ? "text-white" : "text-[#EDEDED]"
       }`}

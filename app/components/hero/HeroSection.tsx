@@ -10,15 +10,28 @@ declare global {
 }
 
 export default function HeroSection() {
-  const portraitVideoRef = useRef<HTMLVideoElement>(null);
-  const landscapeVideoRef = useRef<HTMLVideoElement>(null);
-  const videoClassName = "h-full w-full object-cover";
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const portraitVideo = portraitVideoRef.current;
-    const landscapeVideo = landscapeVideoRef.current;
+    const video = videoRef.current;
+    const setVideoSource = () => {
+      if (!video) return;
+
+      const source = window.matchMedia("(min-width: 821px)").matches
+        ? s3Videos.heroLandscape
+        : s3Videos.heroPortrait;
+
+      // Assigning one source directly avoids browsers retaining the wrong
+      // media-qualified <source> after the first client render.
+      if (video.src !== source) {
+        video.src = source;
+        video.load();
+      }
+    };
     const desktopVideoQuery = window.matchMedia("(min-width: 821px)");
     let isPreloaderComplete = window.__advertoPreloaderComplete === true;
+    let isHeroVisible = true;
+    let pendingPlayListener: (() => void) | null = null;
 
     const resetVideo = (video: HTMLVideoElement) => {
       video.pause();
@@ -26,52 +39,80 @@ export default function HeroSection() {
       try {
         video.currentTime = 0;
       } catch {
-        // Some browsers only allow seeking after metadata is ready.
       }
     };
 
-    const playVisibleVideoFromStart = () => {
-      if (!portraitVideo || !landscapeVideo) return;
+    const playVideoFromStart = () => {
+      if (!video || !isHeroVisible) return;
 
-      resetVideo(portraitVideo);
-      resetVideo(landscapeVideo);
-
-      const visibleVideo = desktopVideoQuery.matches
-        ? landscapeVideo
-        : portraitVideo;
+      resetVideo(video);
 
       const playVideo = () => {
-        visibleVideo.play().catch(() => {
+        pendingPlayListener = null;
+        if (!isHeroVisible || !isPreloaderComplete) return;
+
+        video.play().catch(() => {
           // Muted autoplay is expected to pass, but browser policy can still block it.
         });
       };
 
-      if (visibleVideo.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
         playVideo();
         return;
       }
 
-      visibleVideo.addEventListener("loadedmetadata", playVideo, {
+      if (pendingPlayListener) {
+        video.removeEventListener("canplay", pendingPlayListener);
+      }
+
+      pendingPlayListener = playVideo;
+      video.addEventListener("canplay", playVideo, {
         once: true,
       });
     };
 
     const handlePreloaderComplete = () => {
       isPreloaderComplete = true;
-      window.requestAnimationFrame(playVisibleVideoFromStart);
+      window.requestAnimationFrame(playVideoFromStart);
     };
 
     const handleVideoBreakpointChange = () => {
-      if (isPreloaderComplete) playVisibleVideoFromStart();
+      if (!video) return;
+
+      if (pendingPlayListener) {
+        video.removeEventListener("canplay", pendingPlayListener);
+        pendingPlayListener = null;
+      }
+
+      setVideoSource();
+
+      if (isPreloaderComplete) playVideoFromStart();
     };
 
-    if (portraitVideo && landscapeVideo) {
-      resetVideo(portraitVideo);
-      resetVideo(landscapeVideo);
+    const hero = video?.closest("section");
+    const visibilityObserver = hero
+      ? new IntersectionObserver(
+          ([entry]) => {
+            isHeroVisible = entry.isIntersecting;
+            if (isHeroVisible && isPreloaderComplete) {
+              playVideoFromStart();
+            } else {
+              video?.pause();
+            }
+          },
+          { rootMargin: "100px 0px", threshold: 0.01 },
+        )
+      : null;
+
+    if (hero) visibilityObserver?.observe(hero);
+
+    if (video) {
+      setVideoSource();
+      resetVideo(video);
     }
 
     if (isPreloaderComplete) {
-      playVisibleVideoFromStart();
+      playVideoFromStart();
     }
 
     window.addEventListener(
@@ -89,6 +130,11 @@ export default function HeroSection() {
         "change",
         handleVideoBreakpointChange,
       );
+      if (video && pendingPlayListener) {
+        video.removeEventListener("canplay", pendingPlayListener);
+      }
+      visibilityObserver?.disconnect();
+      video?.pause();
     };
   }, []);
 
@@ -99,26 +145,16 @@ export default function HeroSection() {
       className="relative h-[100svh] min-h-[620px] w-full overflow-hidden bg-black"
     >
       <div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
+        className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
         aria-hidden="true"
       >
         <video
-          ref={portraitVideoRef}
-          className={`${videoClassName} block min-[821px]:hidden`}
-          src={s3Videos.heroPortrait}
+          ref={videoRef}
+          className="h-auto w-auto max-w-full object-contain min-[821px]:h-full min-[821px]:w-full min-[821px]:object-cover"
           muted
           loop
           playsInline
-          preload="metadata"
-        />
-        <video
-          ref={landscapeVideoRef}
-          className={`${videoClassName} hidden min-[821px]:block`}
-          src={s3Videos.heroLandscape}
-          muted
-          loop
-          playsInline
-          preload="metadata"
+          preload="auto"
         />
       </div>
     </section>
