@@ -1,11 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import Container from "../common/Container";
 import InnerBannerHeading from "../common/InnerBannerHeading";
 import usePageTransitionReady from "../common/usePageTransitionReady";
-import { clientLogos } from "../../data/logos";
+import { clientLogos, createLogoItem } from "../../data/logos";
+
+type LogoItem = {
+  id: string | number;
+  fileName: string;
+  name: string;
+  src: string;
+  fallbackSrc?: string;
+  icon: (props: any) => React.ReactNode;
+};
 
 const headingWords = ["Brands", "We", "Helped", "Grow"];
 const smoothEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -68,6 +78,85 @@ export default function ClientLogo({
   waitForPageTransition?: boolean;
 }) {
   const isReady = usePageTransitionReady(waitForPageTransition);
+  const [logos, setLogos] = useState<LogoItem[]>(clientLogos as LogoItem[]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchLatestLogos() {
+      try {
+        const res = await fetch(
+          "https://adverto.jinskadamthodu2k15.workers.dev/api/list-all"
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const objects: Array<{ key: string; uploaded?: string; url?: string }> = Array.isArray(data)
+          ? data
+          : data.objects || data.files || [];
+
+        const bucketLogos = objects.filter(
+          (f) =>
+            f.key.startsWith("client_logos/") &&
+            !f.key.endsWith("/") &&
+            !f.key.includes(".DS_Store")
+        );
+        if (!bucketLogos.length || !isMounted) return;
+
+        const urlMap = new Map<string, string>();
+        bucketLogos.forEach((f) => {
+          const fileName = f.key.replace(/^client_logos\//, "");
+          if (f.url) {
+            urlMap.set(fileName, f.url);
+          }
+        });
+
+        // Top 3 priority logos
+        const top3Names = ["tiara logo1y.png", "fira logoy.png", "Asset 2@4x.png"];
+
+        // New logos uploaded in the latest batch, sorted newest first
+        const newLogos = bucketLogos
+          .filter((f) => {
+            const fileName = f.key.replace(/^client_logos\//, "");
+            return (
+              !top3Names.includes(fileName) &&
+              new Date(f.uploaded || 0).getTime() >
+                new Date("2026-10-23T15:10:00Z").getTime()
+            );
+          })
+          .sort(
+            (a, b) =>
+              new Date(b.uploaded || 0).getTime() -
+              new Date(a.uploaded || 0).getTime()
+          )
+          .map((f) => f.key.replace(/^client_logos\//, ""));
+
+        // Remaining logos from earlier batch
+        const remainingLogos = bucketLogos
+          .filter((f) => {
+            const fileName = f.key.replace(/^client_logos\//, "");
+            return !top3Names.includes(fileName) && !newLogos.includes(fileName);
+          })
+          .map((f) => f.key.replace(/^client_logos\//, ""));
+
+        const orderedFiles = [...top3Names, ...newLogos, ...remainingLogos];
+        const dynamicList = orderedFiles.map((fileName, idx) =>
+          createLogoItem(fileName, idx + 1, urlMap.get(fileName) || null)
+        );
+
+        if (isMounted && dynamicList.length > 0) {
+          setLogos(dynamicList);
+        }
+      } catch (err) {
+        console.error("Failed to dynamically fetch client logos:", err);
+      }
+    }
+
+    fetchLatestLogos();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <section
@@ -113,7 +202,7 @@ export default function ClientLogo({
             viewport={sectionRevealViewport}
             variants={fadeIn}
           >
-            {clientLogos.map((logo) => {
+            {logos.map((logo) => {
               const Icon = logo.icon;
 
               return (
@@ -121,8 +210,6 @@ export default function ClientLogo({
                   key={logo.id}
                   className="group flex items-center justify-center w-full h-full p-2 sm:p-3 md:p-4 transition-transform duration-300 xl:hover:scale-110"
                 >
-                  {/* Rendering the logo icon with a size prop. 
-                      You can adjust the size depending on your base image resolutions */}
                   <Icon 
                     size={100} 
                     className="max-w-[88px] max-h-[56px] sm:max-w-[104px] sm:max-h-[68px] md:max-w-[112px] md:max-h-[74px] lg:max-w-[120px] lg:max-h-[80px] w-auto h-auto object-contain opacity-80 grayscale transition-all duration-300 xl:group-hover:opacity-100 xl:group-hover:grayscale-0" 

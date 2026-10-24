@@ -1,6 +1,23 @@
 import React from "react";
 import Image from "next/image";
-function ImageLogo({ src, alt = "logo", size = 48, className = "", ...props }) {
+
+export const R2_BASE = "https://pub-e7450afec95f428391514b56cd3e9428.r2.dev/client_logos";
+
+export function formatLogoName(fileName) {
+  return fileName.replace(/\.[^.]+$/, "").replace(/[@_-]/g, " ");
+}
+
+export function getLogoCdnUrl(fileName) {
+  return `${R2_BASE}/${encodeURIComponent(fileName)}`;
+}
+
+export function ImageLogo({
+  src,
+  alt = "logo",
+  size = 48,
+  className = "",
+  ...props
+}) {
   return (
     <Image
       src={src}
@@ -17,10 +34,51 @@ function ImageLogo({ src, alt = "logo", size = 48, className = "", ...props }) {
   );
 }
 
-const logoFiles = [
+/**
+ * @param {string} fileName
+ * @param {string|number} [id]
+ * @param {string|null} [customUrl]
+ */
+export function createLogoItem(fileName, id, customUrl = null) {
+  const name = formatLogoName(fileName);
+  const src = customUrl || getLogoCdnUrl(fileName);
+
+  return {
+    id: id || fileName,
+    fileName,
+    name,
+    src,
+    icon: (props) => (
+      <ImageLogo
+        src={src}
+        alt={name}
+        {...props}
+      />
+    ),
+  };
+}
+
+export const logoFiles = [
+  // 1st, 2nd, 3rd logos
   "tiara logo1y.png",
   "fira logoy.png",
   "Asset 2@4x.png",
+
+  // New logos fetched after the 3rd logo (uploaded 2026-10-23T15:59)
+  "design.png",
+  "sora.png",
+  "Asset 1.png",
+  "Asset 2.png",
+  "Asset 3.png",
+  "Asset 4.png",
+  "500Asset 4.png",
+  "Asset 5.png",
+  "Asset 6.png",
+  "Asset 7.png",
+  "Asset 8.png",
+  "Asset 9.png",
+
+  // Remaining original logos
   "300Asset 1u.png",
   "500Asset 1.png",
   "500Asset 1t.png",
@@ -45,20 +103,15 @@ const logoFiles = [
   "Asset 27.png",
   "Asset 28.png",
   "Asset 29.png",
-  "Asset 3.png",
   "Asset 36.png",
   "Asset 37.png",
   "Asset 38.png",
   "Asset 39.png",
-  "Asset 4.png",
   "Asset 40.png",
   "Asset 41.png",
   "Asset 42.png",
   "Asset 43.png",
   "Asset 44.png",
-  "Asset 5.png",
-  "Asset 8.png",
-  "Asset 9.png",
   "PNG.png",
   "sss.png",
   "Asset 1@500x.png",
@@ -66,17 +119,8 @@ const logoFiles = [
   "ayan@500x.png",
   "Jerrys-Educare-HD.png",
   "LOGOS-12.png",
-].map((fileName) => ({
-  name: fileName.replace(/\.[^.]+$/, "").replace(/[@_-]/g, " "),
-  src: `/client-logos/${fileName
-    .replace(/\.[^.]+$/, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")}.webp`,
-}));
+];
 
-export const clientLogos = logoFiles.map((logo, idx) => ({
-  id: idx + 1,
-  name: logo.name,
-  icon: (props) => <ImageLogo src={logo.src} alt={logo.name} {...props} />,
-}));
+export const clientLogos = logoFiles.map((fileName, idx) =>
+  createLogoItem(fileName, idx + 1)
+);

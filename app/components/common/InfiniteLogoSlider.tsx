@@ -1,9 +1,98 @@
 "use client";
 
-import React from "react";
-import { clientLogos } from "../../data/logos";
+import React, { useEffect, useState } from "react";
+import { clientLogos, createLogoItem } from "../../data/logos";
+
+type LogoItem = {
+  id: string | number;
+  fileName: string;
+  name: string;
+  src: string;
+  fallbackSrc?: string;
+  icon: (props: any) => React.ReactNode;
+};
 
 export default function InfiniteLogoSlider() {
+  const [logos, setLogos] = useState<LogoItem[]>(clientLogos as LogoItem[]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchLatestLogos() {
+      try {
+        const res = await fetch(
+          "https://adverto.jinskadamthodu2k15.workers.dev/api/list-all"
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const objects: Array<{ key: string; uploaded?: string; url?: string }> = Array.isArray(data)
+          ? data
+          : data.objects || data.files || [];
+
+        const bucketLogos = objects.filter(
+          (f) =>
+            f.key.startsWith("client_logos/") &&
+            !f.key.endsWith("/") &&
+            !f.key.includes(".DS_Store")
+        );
+        if (!bucketLogos.length || !isMounted) return;
+
+        const urlMap = new Map<string, string>();
+        bucketLogos.forEach((f) => {
+          const fileName = f.key.replace(/^client_logos\//, "");
+          if (f.url) {
+            urlMap.set(fileName, f.url);
+          }
+        });
+
+        // Top 3 priority logos
+        const top3Names = ["tiara logo1y.png", "fira logoy.png", "Asset 2@4x.png"];
+
+        // New logos uploaded in the latest batch, sorted newest first
+        const newLogos = bucketLogos
+          .filter((f) => {
+            const fileName = f.key.replace(/^client_logos\//, "");
+            return (
+              !top3Names.includes(fileName) &&
+              new Date(f.uploaded || 0).getTime() >
+                new Date("2026-10-23T15:10:00Z").getTime()
+            );
+          })
+          .sort(
+            (a, b) =>
+              new Date(b.uploaded || 0).getTime() -
+              new Date(a.uploaded || 0).getTime()
+          )
+          .map((f) => f.key.replace(/^client_logos\//, ""));
+
+        // Remaining logos from earlier batch
+        const remainingLogos = bucketLogos
+          .filter((f) => {
+            const fileName = f.key.replace(/^client_logos\//, "");
+            return !top3Names.includes(fileName) && !newLogos.includes(fileName);
+          })
+          .map((f) => f.key.replace(/^client_logos\//, ""));
+
+        const orderedFiles = [...top3Names, ...newLogos, ...remainingLogos];
+        const dynamicList = orderedFiles.map((fileName, idx) =>
+          createLogoItem(fileName, idx + 1, urlMap.get(fileName) || null)
+        );
+
+        if (isMounted && dynamicList.length > 0) {
+          setLogos(dynamicList);
+        }
+      } catch (err) {
+        console.error("Failed to dynamically fetch slider logos:", err);
+      }
+    }
+
+    fetchLatestLogos();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="w-full bg-[#050505] overflow-hidden flex flex-col items-center">
 
@@ -33,7 +122,7 @@ export default function InfiniteLogoSlider() {
           {/* Duplicate the array twice to create the seamless loop */}
           {[...Array(2)].map((_, setIndex) => (
             <div key={setIndex} className="flex shrink-0 items-center gap-[30px]">
-              {clientLogos.map((logo) => {
+              {logos.map((logo) => {
                 const Icon = logo.icon;
                 return (
                   <div

@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import InnerBannerHeading from "../components/common/InnerBannerHeading";
-import { s3ServiceVideos } from "../data/s3Assets.js";
+import { s3ServiceVideos, s3Asset } from "../data/s3Assets.js";
 
-const horizontalVideos = s3ServiceVideos.horizontal;
-const verticalVideos = s3ServiceVideos.vertical;
+const initialHorizontalVideos = s3ServiceVideos.horizontal;
+const initialVerticalVideos = s3ServiceVideos.vertical;
 
 const smoothEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const titleText = "Frames That\nMove Brands";
@@ -59,23 +59,43 @@ function createShuffledIndexes(length: number, previousIndex?: number) {
   return indexes;
 }
 
+function createInitialPlaybackOrder(length: number, priorityCount = 1) {
+  if (length <= 1) return Array.from({ length }, (_, index) => index);
+  const count = Math.min(Math.max(1, priorityCount), length);
+  const priorityIndices = Array.from({ length: count }, (_, index) => index);
+  const remaining = Array.from(
+    { length: length - count },
+    (_, index) => index + count
+  );
+  for (let index = remaining.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [remaining[index], remaining[swapIndex]] = [
+      remaining[swapIndex],
+      remaining[index],
+    ];
+  }
+  return [...priorityIndices, ...remaining];
+}
+
 // ─── DUAL BUFFER PLAYLIST VIDEO COMPONENT ────────────────────────────────────
 function PlaylistVideo({
   videos,
   label,
   className,
+  priorityCount = 1,
 }: {
   videos: string[];
   label: string;
   className: string;
+  priorityCount?: number;
 }) {
   const [playbackOrder, setPlaybackOrder] = useState<number[]>(() =>
-    Array.from({ length: videos.length }, (_, index) => index),
+    createInitialPlaybackOrder(videos.length, priorityCount)
   );
   const [orderIndex, setOrderIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [preloadNext, setPreloadNext] = useState(false);
-  
+
   // Track which of the two <video> tags is currently active and visible
   const [activeBuffer, setActiveBuffer] = useState<0 | 1>(0);
 
@@ -84,11 +104,19 @@ function PlaylistVideo({
 
   const AudioIcon = isMuted ? VolumeX : Volume2;
 
+  // Sync playback order when videos or priorityCount change
+  useEffect(() => {
+    if (videos.length === 0) return;
+    setPlaybackOrder(createInitialPlaybackOrder(videos.length, priorityCount));
+    setOrderIndex(0);
+    setActiveBuffer(0);
+  }, [videos, priorityCount]);
+
   // Determine current and next video indices based on the shuffled playlist
   const currentIndex = playbackOrder[orderIndex] ?? 0;
-  
+
   // Calculate the next index to preload
-  const nextOrderIndex = (orderIndex + 1) % playbackOrder.length;
+  const nextOrderIndex = (orderIndex + 1) % (playbackOrder.length || 1);
   const nextIndex = playbackOrder[nextOrderIndex] ?? 0;
 
   // The active buffer gets the current video. The inactive buffer gets the next video.
@@ -110,7 +138,8 @@ function PlaylistVideo({
 
   // Play the currently active buffer when it changes
   useEffect(() => {
-    const activeRef = activeBuffer === 0 ? videoRef0.current : videoRef1.current;
+    const activeRef =
+      activeBuffer === 0 ? videoRef0.current : videoRef1.current;
     if (activeRef) {
       activeRef.play().catch(() => undefined);
     }
@@ -147,13 +176,17 @@ function PlaylistVideo({
         onPlaying={() => {
           if (activeBuffer === 0) setPreloadNext(true);
         }}
-        onEnded={() => { if (activeBuffer === 0) handleVideoEnd(); }}
-        onError={() => { if (activeBuffer === 0) handleVideoEnd(); }}
+        onEnded={() => {
+          if (activeBuffer === 0) handleVideoEnd();
+        }}
+        onError={() => {
+          if (activeBuffer === 0) handleVideoEnd();
+        }}
         className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${
           activeBuffer === 0 ? "opacity-100 z-10" : "opacity-0 z-0"
         }`}
       />
-      
+
       {/* Video Buffer 1 */}
       <video
         ref={videoRef1}
@@ -166,8 +199,12 @@ function PlaylistVideo({
         onPlaying={() => {
           if (activeBuffer === 1) setPreloadNext(true);
         }}
-        onEnded={() => { if (activeBuffer === 1) handleVideoEnd(); }}
-        onError={() => { if (activeBuffer === 1) handleVideoEnd(); }}
+        onEnded={() => {
+          if (activeBuffer === 1) handleVideoEnd();
+        }}
+        onError={() => {
+          if (activeBuffer === 1) handleVideoEnd();
+        }}
         className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${
           activeBuffer === 1 ? "opacity-100 z-10" : "opacity-0 z-0"
         }`}
@@ -195,6 +232,92 @@ export default function ServiceVideoShowcase({
   motionReady?: boolean;
 }) {
   const animationState = motionReady ? "visible" : "hidden";
+
+  const [horizontalVideos, setHorizontalVideos] = useState<string[]>(
+    initialHorizontalVideos
+  );
+  const [verticalVideos, setVerticalVideos] =
+    useState<string[]>(initialVerticalVideos);
+  const [horizontalNewCount, setHorizontalNewCount] = useState(2);
+  const [verticalNewCount, setVerticalNewCount] = useState(3);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchLatestVideos() {
+      try {
+        const res = await fetch(
+          "https://adverto.jinskadamthodu2k15.workers.dev/api/list-all"
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const objects: Array<{
+          key: string;
+          uploaded?: string;
+          url?: string;
+        }> = Array.isArray(data) ? data : data.objects || data.files || [];
+
+        const hObjects = objects
+          .filter(
+            (f) =>
+              f.key.startsWith("videos/horizontal/") &&
+              !f.key.endsWith("/") &&
+              !f.key.includes(".DS_Store")
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.uploaded || 0).getTime() -
+              new Date(a.uploaded || 0).getTime()
+          );
+
+        const vObjects = objects
+          .filter(
+            (f) =>
+              f.key.startsWith("videos/vertical/") &&
+              !f.key.endsWith("/") &&
+              !f.key.includes(".DS_Store")
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.uploaded || 0).getTime() -
+              new Date(a.uploaded || 0).getTime()
+          );
+
+        if (!isMounted) return;
+
+        // Detect new videos uploaded in the latest batch (> 2026-10-23T16:00:00Z)
+        const recentThreshold = new Date("2026-10-23T16:00:00Z").getTime();
+        const hNew = hObjects.filter(
+          (f) => new Date(f.uploaded || 0).getTime() > recentThreshold
+        ).length;
+        const vNew = vObjects.filter(
+          (f) => new Date(f.uploaded || 0).getTime() > recentThreshold
+        ).length;
+
+        if (hObjects.length > 0) {
+          setHorizontalVideos(
+            hObjects.map((f) => f.url || s3Asset(f.key))
+          );
+          setHorizontalNewCount(Math.max(1, hNew));
+        }
+
+        if (vObjects.length > 0) {
+          setVerticalVideos(
+            vObjects.map((f) => f.url || s3Asset(f.key))
+          );
+          setVerticalNewCount(Math.max(1, vNew));
+        }
+      } catch (err) {
+        console.error("Failed to dynamically fetch service videos:", err);
+      }
+    }
+
+    fetchLatestVideos();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div>
@@ -233,6 +356,7 @@ export default function ServiceVideoShowcase({
             videos={horizontalVideos}
             label="Horizontal service video reel"
             className="aspect-video w-full"
+            priorityCount={horizontalNewCount}
           />
         </motion.div>
 
@@ -244,6 +368,7 @@ export default function ServiceVideoShowcase({
             videos={verticalVideos}
             label="Vertical service video reel"
             className="aspect-[9/16] w-full"
+            priorityCount={verticalNewCount}
           />
         </motion.div>
       </motion.div>

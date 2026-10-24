@@ -2,6 +2,34 @@ import { s3PortfolioProjects } from "./s3Assets.js";
 
 const moreProjectsBase = [
   {
+    id: "11-core",
+    slug: "11-core",
+    title: "11 CORE",
+    subtitle: "Fitness & Lifestyle Brand · 2026",
+    image: "Portfolio/11_CORE/cover/cover.jpg",
+  },
+  {
+    id: "design-marble-granite",
+    slug: "design-marble-granite",
+    title: "DESIGN MARBLE & GRANITE",
+    subtitle: "Marble & Granite Brand · 2026",
+    image: "Portfolio/DESIGN_MARBLE_GRANITE/Cover/cover.jpg",
+  },
+  {
+    id: "orlo",
+    slug: "orlo",
+    title: "ORLO",
+    subtitle: "Branding · 2026",
+    image: "Portfolio/ORLO/Cover/cover.jpg",
+  },
+  {
+    id: "quoon",
+    slug: "quoon",
+    title: "QUOON",
+    subtitle: "Branding · 2026",
+    image: "Portfolio/QUOON/Cover/cover.jpg",
+  },
+  {
     id: "spices",
     slug: "spices",
     title: "Spices",
@@ -231,34 +259,6 @@ const moreProjectsBase = [
     title: "POTOGO",
     subtitle: "Branding 2024",
     image: "/case-studies/POTAGO/Cover/cover copy.webp",
-  },
-  {
-    id: "11-core",
-    slug: "11-core",
-    title: "11 CORE",
-    subtitle: "Fitness & Lifestyle Brand · 2026",
-    image: "Portfolio/11_CORE/cover/cover.jpg",
-  },
-  {
-    id: "design-marble-granite",
-    slug: "design-marble-granite",
-    title: "DESIGN MARBLE & GRANITE",
-    subtitle: "Marble & Granite Brand · 2026",
-    image: "Portfolio/DESIGN_MARBLE_GRANITE/Cover/cover.jpg",
-  },
-  {
-    id: "orlo",
-    slug: "orlo",
-    title: "ORLO",
-    subtitle: "Branding · 2026",
-    image: "Portfolio/ORLO/Cover/cover.jpg",
-  },
-  {
-    id: "quoon",
-    slug: "quoon",
-    title: "QUOON",
-    subtitle: "Branding · 2026",
-    image: "Portfolio/QUOON/Cover/cover.jpg",
   },
 ];
 

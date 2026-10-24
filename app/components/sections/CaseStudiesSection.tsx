@@ -262,8 +262,110 @@ function ViewportVideo({ src, label }: { src: string; label: string }) {
   );
 }
 
+type FeaturedPortfolioTilesGroup = {
+  leftTop: { intervalMs: number; projects: FeaturedPortfolioProject[] };
+  leftBottom: { intervalMs: number; projects: FeaturedPortfolioProject[] };
+  rightTop: { intervalMs: number; projects: FeaturedPortfolioProject[] };
+  rightBottom: { intervalMs: number; projects: FeaturedPortfolioProject[] };
+};
+
 export default function CaseStudiesSection() {
   const centerProject = caseStudyCollageProjects[2];
+  const [portfolioTiles, setPortfolioTiles] =
+    useState<FeaturedPortfolioTilesGroup>(
+      featuredPortfolioTiles as FeaturedPortfolioTilesGroup
+    );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchLatestFeaturedImages() {
+      try {
+        const res = await fetch(
+          "https://adverto.jinskadamthodu2k15.workers.dev/api/list-all"
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const files: Array<{ key: string; uploaded?: string }> = Array.isArray(data)
+          ? data
+          : data.objects || data.files || [];
+
+        const squareProjects: FeaturedPortfolioProject[] = files
+          .filter((f) => f.key.includes("Home/1200 x 1200/"))
+          .sort(
+            (a, b) =>
+              new Date(b.uploaded || 0).getTime() -
+              new Date(a.uploaded || 0).getTime()
+          )
+          .map((f, i) => {
+            const fileName = f.key.split("/").pop() || "";
+            return {
+              id: `1200 x 1200-${fileName}`,
+              title: "Featured Portfolio",
+              subtitle: "Branding",
+              image: `https://pub-e7450afec95f428391514b56cd3e9428.r2.dev/Home/1200%20x%201200/${encodeURIComponent(fileName)}`,
+              alt: `Featured portfolio image ${i + 1}`,
+            };
+          });
+
+        const landscapeProjects: FeaturedPortfolioProject[] = files
+          .filter((f) => f.key.includes("Home/1200 x 900/"))
+          .sort(
+            (a, b) =>
+              new Date(b.uploaded || 0).getTime() -
+              new Date(a.uploaded || 0).getTime()
+          )
+          .map((f, i) => {
+            const fileName = f.key.split("/").pop() || "";
+            return {
+              id: `1200 x 900-${fileName}`,
+              title: "Featured Portfolio",
+              subtitle: "Branding",
+              image: `https://pub-e7450afec95f428391514b56cd3e9428.r2.dev/Home/1200%20x%20900/${encodeURIComponent(fileName)}`,
+              alt: `Featured portfolio image ${i + 1}`,
+            };
+          });
+
+        if (
+          isMounted &&
+          squareProjects.length > 0 &&
+          landscapeProjects.length > 0
+        ) {
+          const splitEveryOther = (
+            items: FeaturedPortfolioProject[],
+            startIndex: number
+          ) => items.filter((_, index) => index % 2 === startIndex);
+
+          setPortfolioTiles({
+            leftTop: {
+              intervalMs: 1200,
+              projects: splitEveryOther(squareProjects, 0),
+            },
+            leftBottom: {
+              intervalMs: 1500,
+              projects: splitEveryOther(landscapeProjects, 0),
+            },
+            rightTop: {
+              intervalMs: 1800,
+              projects: splitEveryOther(landscapeProjects, 1),
+            },
+            rightBottom: {
+              intervalMs: 2100,
+              projects: splitEveryOther(squareProjects, 1),
+            },
+          });
+        }
+      } catch {
+        // Keep static fallback
+      }
+    }
+
+    fetchLatestFeaturedImages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <section
@@ -306,7 +408,61 @@ export default function CaseStudiesSection() {
           </motion.div>
         </div>
 
-        {/* --- 2. FEATURED PROJECT 1 (KOICKAL) --- */}
+        {/* --- 2. FEATURED PROJECT 1 (AL JAZEERA LITTLE WONDER) --- */}
+        <div
+          className={`${styles.featuredCaseStudy} group mb-5 grid grid-cols-1 items-center gap-4 overflow-hidden rounded-[16px] border border-[#252525] bg-[#080808] p-3 md:rounded-[20px] md:p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.92fr)] lg:gap-6`}
+        >
+          <motion.div
+            className="relative aspect-[3492/2000] w-full overflow-hidden rounded-[16px] bg-white/5 md:rounded-[20px]"
+            initial="hidden"
+            whileInView="visible"
+            viewport={sectionRevealViewport}
+            variants={fadeFromLeft}
+          >
+            <RotatingCampaignImage
+              images={alJazeeraCampaignImages}
+              alt="Al Jazeera Little Wonder 2026 campaign visual"
+              priority={true}
+            />
+            <div className="pointer-events-none absolute inset-0 rounded-[16px] md:rounded-[20px] bg-black/10" />
+          </motion.div>
+
+          <motion.div
+            className="flex flex-col justify-center p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={sectionRevealViewport}
+            variants={fadeFromRight}
+          >
+            <p className="mb-3 text-[11px] uppercase tracking-[0.15em] text-[#0000FF] md:text-xs">
+              Kids Drawing Competition Campaign
+            </p>
+            <h3 className={`${styles.featuredCaseStudyTitle} mb-4 max-w-[720px] text-[25px] font-medium leading-[1.08] text-[#EDEDED] sm:text-[30px] md:text-[22px] lg:text-[35px] xl:text-4xl`}>
+              Al Jazeera Little Wonder 2026
+            </h3>
+            <p className={`${styles.featuredCaseStudyDescription} mb-4 max-w-[720px] text-[14px] leading-[1.65] text-white/50 md:text-[15px] lg:text-[14px] xl:text-[15px]`}>
+              A vibrant creative campaign developed by Adverto for Al Jazeera Oman&apos;s Little Wonder 2026.
+            </p>
+            <p className={`${styles.featuredCaseStudyLastDescription} mb-0 max-w-[720px] text-[14px] leading-[1.65] text-white/50 md:text-[15px] lg:text-[14px] xl:text-[15px]`}>
+              Celebrating children&apos;s imagination and artistic talent, the campaign was designed to encourage creativity, build confidence, and bring young talents into the spotlight.
+            </p>
+            <Link
+              href="/campigns/al-jazeera-little-wonder-2026"
+              scroll
+              data-scroll-card-id="campaign-al-jazeera-little-wonder-2026"
+              data-campaign-card="al-jazeera-little-wonder-2026"
+              onNavigate={() =>
+                beginForwardNavigation("campaign-al-jazeera-little-wonder-2026")
+              }
+              className={`${styles.featuredCaseStudyReadMore} group mt-5 items-center gap-2 text-sm text-[#EDEDED] transition-colors hover:text-[#0000FF]`}
+            >
+              Read more
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* --- 2. FEATURED PROJECT 2 (KOICKAL) --- */}
         <div
           className={`${styles.featuredCaseStudy} group mb-5 grid grid-cols-1 items-center gap-4 overflow-hidden rounded-[16px] border border-[#252525] bg-[#080808] p-3 md:rounded-[20px] md:p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.92fr)] lg:gap-6`}
         >
@@ -363,59 +519,6 @@ export default function CaseStudiesSection() {
           </motion.div>
         </div>
 
-        {/* --- 2. FEATURED PROJECT 2 (AL JAZEERA LITTLE WONDER) --- */}
-        <div
-          className={`${styles.featuredCaseStudy} group mb-5 grid grid-cols-1 items-center gap-4 overflow-hidden rounded-[16px] border border-[#252525] bg-[#080808] p-3 md:rounded-[20px] md:p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.92fr)] lg:gap-6`}
-        >
-          <motion.div
-            className="relative aspect-[3492/2000] w-full overflow-hidden rounded-[16px] bg-white/5 md:rounded-[20px]"
-            initial="hidden"
-            whileInView="visible"
-            viewport={sectionRevealViewport}
-            variants={fadeFromLeft}
-          >
-            <RotatingCampaignImage
-              images={alJazeeraCampaignImages}
-              alt="Al Jazeera Little Wonder 2026 campaign visual"
-            />
-            <div className="pointer-events-none absolute inset-0 rounded-[16px] md:rounded-[20px] bg-black/10" />
-          </motion.div>
-
-          <motion.div
-            className="flex flex-col justify-center p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8"
-            initial="hidden"
-            whileInView="visible"
-            viewport={sectionRevealViewport}
-            variants={fadeFromRight}
-          >
-            <p className="mb-3 text-[11px] uppercase tracking-[0.15em] text-[#0000FF] md:text-xs">
-              Kids Drawing Competition Campaign
-            </p>
-            <h3 className={`${styles.featuredCaseStudyTitle} mb-4 max-w-[720px] text-[25px] font-medium leading-[1.08] text-[#EDEDED] sm:text-[30px] md:text-[22px] lg:text-[35px] xl:text-4xl`}>
-              Al Jazeera Little Wonder 2026
-            </h3>
-            <p className={`${styles.featuredCaseStudyDescription} mb-4 max-w-[720px] text-[14px] leading-[1.65] text-white/50 md:text-[15px] lg:text-[14px] xl:text-[15px]`}>
-              A vibrant creative campaign developed by Adverto for Al Jazeera Oman&apos;s Little Wonder 2026.
-            </p>
-            <p className={`${styles.featuredCaseStudyLastDescription} mb-0 max-w-[720px] text-[14px] leading-[1.65] text-white/50 md:text-[15px] lg:text-[14px] xl:text-[15px]`}>
-              Celebrating children&apos;s imagination and artistic talent, the campaign was designed to encourage creativity, build confidence, and bring young talents into the spotlight.
-            </p>
-            <Link
-              href="/campigns/al-jazeera-little-wonder-2026"
-              scroll
-              data-scroll-card-id="campaign-al-jazeera-little-wonder-2026"
-              data-campaign-card="al-jazeera-little-wonder-2026"
-              onNavigate={() =>
-                beginForwardNavigation("campaign-al-jazeera-little-wonder-2026")
-              }
-              className={`${styles.featuredCaseStudyReadMore} group mt-5 items-center gap-2 text-sm text-[#EDEDED] transition-colors hover:text-[#0000FF]`}
-            >
-              Read more
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-            </Link>
-          </motion.div>
-        </div>
-
         {/* --- 3. COLLAGE GRID (3 Columns) --- */}
         <div
           className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3"
@@ -430,15 +533,15 @@ export default function CaseStudiesSection() {
           >
             <motion.div variants={fadeFromLeft}>
               <RotatingPortfolioTile
-                projects={featuredPortfolioTiles.leftTop.projects}
-                intervalMs={featuredPortfolioTiles.leftTop.intervalMs}
+                projects={portfolioTiles.leftTop.projects}
+                intervalMs={portfolioTiles.leftTop.intervalMs}
                 className="aspect-square"
               />
             </motion.div>
             <motion.div variants={fadeFromLeft}>
               <RotatingPortfolioTile
-                projects={featuredPortfolioTiles.leftBottom.projects}
-                intervalMs={featuredPortfolioTiles.leftBottom.intervalMs}
+                projects={portfolioTiles.leftBottom.projects}
+                intervalMs={portfolioTiles.leftBottom.intervalMs}
                 className="aspect-[4/3]"
               />
             </motion.div>
@@ -463,15 +566,15 @@ export default function CaseStudiesSection() {
           >
             <motion.div variants={fadeFromRight}>
               <RotatingPortfolioTile
-                projects={featuredPortfolioTiles.rightTop.projects}
-                intervalMs={featuredPortfolioTiles.rightTop.intervalMs}
+                projects={portfolioTiles.rightTop.projects}
+                intervalMs={portfolioTiles.rightTop.intervalMs}
                 className="aspect-[4/3]"
               />
             </motion.div>
             <motion.div variants={fadeFromRight}>
               <RotatingPortfolioTile
-                projects={featuredPortfolioTiles.rightBottom.projects}
-                intervalMs={featuredPortfolioTiles.rightBottom.intervalMs}
+                projects={portfolioTiles.rightBottom.projects}
+                intervalMs={portfolioTiles.rightBottom.intervalMs}
                 className="aspect-square"
               />
             </motion.div>

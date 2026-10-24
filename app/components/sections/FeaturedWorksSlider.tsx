@@ -24,12 +24,7 @@ type PortfolioProject = {
 const projects = portfolioPageProjects as PortfolioProject[];
 const FEATURED_PROJECT_LIMIT = 14;
 
-const featuredProjects = [...projects].sort((a, b) => {
-  const aScore = a.slug.charCodeAt(0) + a.title.length * 7;
-  const bScore = b.slug.charCodeAt(0) + b.title.length * 7;
-
-  return aScore - bScore;
-}).slice(0, FEATURED_PROJECT_LIMIT);
+const featuredProjects = projects.slice(0, FEATURED_PROJECT_LIMIT);
 
 export default function FeaturedWorksSlider({
   waitForPageTransition = false,
