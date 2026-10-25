@@ -59,22 +59,86 @@ function createShuffledIndexes(length: number, previousIndex?: number) {
   return indexes;
 }
 
-function createInitialPlaybackOrder(length: number, priorityCount = 1) {
-  if (length <= 1) return Array.from({ length }, (_, index) => index);
-  const count = Math.min(Math.max(1, priorityCount), length);
-  const priorityIndices = Array.from({ length: count }, (_, index) => index);
-  const remaining = Array.from(
-    { length: length - count },
-    (_, index) => index + count
-  );
-  for (let index = remaining.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [remaining[index], remaining[swapIndex]] = [
-      remaining[swapIndex],
-      remaining[index],
-    ];
+function getBrandCluster(urlOrName: string): string {
+  if (!urlOrName) return "";
+  const decoded = decodeURIComponent(urlOrName).toLowerCase();
+  const filename = decoded.split("/").pop() || "";
+
+  // IMG_1816, 1817, 1818, 1820, 1821 (same client campaign)
+  if (/img_18(16|17|18|20|21)/i.test(filename)) {
+    return "img_18xx";
   }
-  return [...priorityIndices, ...remaining];
+  const match08 = filename.match(/img[_\s]*08(\d{2})/i);
+  if (match08) {
+    const num = parseInt(match08[1], 10);
+    return num >= 80 ? "img_088x" : "img_086x";
+  }
+  const match17 = filename.match(/img[_\s]*17(\d{2})/i);
+  if (match17) {
+    return "img_17xx";
+  }
+  return filename;
+}
+
+function findLatestVideoIndex(videos: string[], pattern: RegExp): number {
+  const idx = videos.findIndex((v) => pattern.test(v));
+  return idx >= 0 ? idx : 0;
+}
+
+function shuffleArray(arr: number[]): number[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function createPairedPlaybackOrders(
+  hVideos: string[],
+  vVideos: string[]
+): { hOrder: number[]; vOrder: number[] } {
+  // 1. Horizontal: keep the latest video first
+  const latestHIdx = findLatestVideoIndex(hVideos, /img_1816/i);
+  const remainingH = shuffleArray(
+    Array.from({ length: hVideos.length }, (_, i) => i).filter(
+      (i) => i !== latestHIdx
+    )
+  );
+  const hOrder = [latestHIdx, ...remainingH];
+
+  // 2. Vertical: keep the latest video on the 3rd one
+  const latestVIdx = findLatestVideoIndex(vVideos, /img_1818/i);
+  const remainingV = shuffleArray(
+    Array.from({ length: vVideos.length }, (_, i) => i).filter(
+      (i) => i !== latestVIdx
+    )
+  );
+
+  // Avoid placing other videos of the same brand (e.g. IMG_1820, IMG_1821) in the first 2 slots of vertical
+  const hFirstBrand = getBrandCluster(hVideos[latestHIdx]);
+  for (let slot = 0; slot < Math.min(2, remainingV.length); slot++) {
+    if (getBrandCluster(vVideos[remainingV[slot]]) === hFirstBrand) {
+      const nonCollidingIdx = remainingV.findIndex(
+        (idx, i) => i >= 2 && getBrandCluster(vVideos[idx]) !== hFirstBrand
+      );
+      if (nonCollidingIdx >= 0) {
+        [remainingV[slot], remainingV[nonCollidingIdx]] = [
+          remainingV[nonCollidingIdx],
+          remainingV[slot],
+        ];
+      }
+    }
+  }
+
+  const vOrder =
+    remainingV.length >= 2
+      ? [remainingV[0], remainingV[1], latestVIdx, ...remainingV.slice(2)]
+      : remainingV.length === 1
+      ? [remainingV[0], latestVIdx]
+      : [latestVIdx];
+
+  return { hOrder, vOrder };
 }
 
 // ─── DUAL BUFFER PLAYLIST VIDEO COMPONENT ────────────────────────────────────
@@ -82,15 +146,17 @@ function PlaylistVideo({
   videos,
   label,
   className,
-  priorityCount = 1,
+  initialOrder,
 }: {
   videos: string[];
   label: string;
   className: string;
-  priorityCount?: number;
+  initialOrder?: number[];
 }) {
   const [playbackOrder, setPlaybackOrder] = useState<number[]>(() =>
-    createInitialPlaybackOrder(videos.length, priorityCount)
+    initialOrder && initialOrder.length === videos.length
+      ? initialOrder
+      : Array.from({ length: videos.length }, (_, index) => index)
   );
   const [orderIndex, setOrderIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
@@ -104,13 +170,17 @@ function PlaylistVideo({
 
   const AudioIcon = isMuted ? VolumeX : Volume2;
 
-  // Sync playback order when videos or priorityCount change
+  // Sync playback order when initialOrder or videos change
   useEffect(() => {
     if (videos.length === 0) return;
-    setPlaybackOrder(createInitialPlaybackOrder(videos.length, priorityCount));
+    setPlaybackOrder(
+      initialOrder && initialOrder.length === videos.length
+        ? initialOrder
+        : createShuffledIndexes(videos.length)
+    );
     setOrderIndex(0);
     setActiveBuffer(0);
-  }, [videos, priorityCount]);
+  }, [initialOrder, videos]);
 
   // Determine current and next video indices based on the shuffled playlist
   const currentIndex = playbackOrder[orderIndex] ?? 0;
@@ -173,6 +243,7 @@ function PlaylistVideo({
         muted={isMuted}
         playsInline
         preload={activeBuffer === 0 || preloadNext ? "auto" : "metadata"}
+        suppressHydrationWarning
         onPlaying={() => {
           if (activeBuffer === 0) setPreloadNext(true);
         }}
@@ -196,6 +267,7 @@ function PlaylistVideo({
         muted={isMuted}
         playsInline
         preload={activeBuffer === 1 || preloadNext ? "auto" : "metadata"}
+        suppressHydrationWarning
         onPlaying={() => {
           if (activeBuffer === 1) setPreloadNext(true);
         }}
@@ -238,11 +310,23 @@ export default function ServiceVideoShowcase({
   );
   const [verticalVideos, setVerticalVideos] =
     useState<string[]>(initialVerticalVideos);
-  const [horizontalNewCount, setHorizontalNewCount] = useState(2);
-  const [verticalNewCount, setVerticalNewCount] = useState(3);
+  const [orders, setOrders] = useState<{ hOrder: number[]; vOrder: number[] }>(
+    () => ({
+      hOrder: Array.from(
+        { length: initialHorizontalVideos.length },
+        (_, i) => i
+      ),
+      vOrder: Array.from({ length: initialVerticalVideos.length }, (_, i) => i),
+    })
+  );
 
   useEffect(() => {
     let isMounted = true;
+
+    // Randomize paired playback orders on client mount to avoid SSR hydration mismatch
+    setOrders(
+      createPairedPlaybackOrders(initialHorizontalVideos, initialVerticalVideos)
+    );
 
     async function fetchLatestVideos() {
       try {
@@ -285,27 +369,24 @@ export default function ServiceVideoShowcase({
 
         if (!isMounted) return;
 
-        // Detect new videos uploaded in the latest batch (> 2026-10-23T16:00:00Z)
-        const recentThreshold = new Date("2026-10-23T16:00:00Z").getTime();
-        const hNew = hObjects.filter(
-          (f) => new Date(f.uploaded || 0).getTime() > recentThreshold
-        ).length;
-        const vNew = vObjects.filter(
-          (f) => new Date(f.uploaded || 0).getTime() > recentThreshold
-        ).length;
+        const hUrls = hObjects.map((f) => f.url || s3Asset(f.key));
+        const vUrls = vObjects.map((f) => f.url || s3Asset(f.key));
 
-        if (hObjects.length > 0) {
-          setHorizontalVideos(
-            hObjects.map((f) => f.url || s3Asset(f.key))
-          );
-          setHorizontalNewCount(Math.max(1, hNew));
-        }
+        const currentHSet = new Set(initialHorizontalVideos);
+        const currentVSet = new Set(initialVerticalVideos);
+        const hasNewHVideos = hUrls.some((u) => !currentHSet.has(u));
+        const hasNewVVideos = vUrls.some((u) => !currentVSet.has(u));
 
-        if (vObjects.length > 0) {
-          setVerticalVideos(
-            vObjects.map((f) => f.url || s3Asset(f.key))
+        if (hasNewHVideos || hasNewVVideos) {
+          const finalH = Array.from(
+            new Set([...hUrls, ...initialHorizontalVideos])
           );
-          setVerticalNewCount(Math.max(1, vNew));
+          const finalV = Array.from(
+            new Set([...vUrls, ...initialVerticalVideos])
+          );
+          setHorizontalVideos(finalH);
+          setVerticalVideos(finalV);
+          setOrders(createPairedPlaybackOrders(finalH, finalV));
         }
       } catch (err) {
         console.error("Failed to dynamically fetch service videos:", err);
@@ -356,7 +437,7 @@ export default function ServiceVideoShowcase({
             videos={horizontalVideos}
             label="Horizontal service video reel"
             className="aspect-video w-full"
-            priorityCount={horizontalNewCount}
+            initialOrder={orders.hOrder}
           />
         </motion.div>
 
@@ -368,7 +449,7 @@ export default function ServiceVideoShowcase({
             videos={verticalVideos}
             label="Vertical service video reel"
             className="aspect-[9/16] w-full"
-            priorityCount={verticalNewCount}
+            initialOrder={orders.vOrder}
           />
         </motion.div>
       </motion.div>
