@@ -1458,6 +1458,7 @@ export const s3Manifest = {
     "ASHIF.jpeg",
     "fabis.jpg",
     "navas ..jpg",
+    "navo.jpeg",
     "shihab.jpg"
   ],
   "videos": {

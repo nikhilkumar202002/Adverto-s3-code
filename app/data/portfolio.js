@@ -40,7 +40,7 @@ export const caseStudyCollageProjects = [
   {
     id: "11-core",
     title: "11 CORE",
-    subtitle: "Fitness & Lifestyle Brand · 2026",
+    subtitle: "Men Inner Wear Branding · 2026",
     image: s3PortfolioProjects["11-core"].heroImage,
     alt: "11 Core brand campaign",
   },
@@ -706,7 +706,7 @@ const portfolioProjectDetails = {
   },
   "11-core": {
     title: "11 CORE",
-    category: "Fitness & Lifestyle Brand",
+    category: "Men Inner Wear Branding",
     year: "2026",
   },
   "design-marble-granite": {
@@ -716,12 +716,12 @@ const portfolioProjectDetails = {
   },
   orlo: {
     title: "ORLO",
-    category: "Branding",
+    category: "Unisex Ornaments Branding",
     year: "2026",
   },
   quoon: {
     title: "QUOON",
-    category: "Branding",
+    category: "Personal Branding Amritha Rajan",
     year: "2026",
   },
 };
@@ -730,8 +730,8 @@ const portfolioPageProjectsBase = [
   {
     slug: "11-core",
     title: "11 CORE",
-    subtitle: "Fitness & Lifestyle Brand · 2026",
-    category: "Fitness & Lifestyle Brand",
+    subtitle: "Men Inner Wear Branding · 2026",
+    category: "Men Inner Wear Branding",
     year: "2026",
     heroImage: "Portfolio/11_CORE/cover/cover.jpg",
     description:

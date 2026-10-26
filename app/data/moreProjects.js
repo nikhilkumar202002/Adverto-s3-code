@@ -5,7 +5,7 @@ const moreProjectsBase = [
     id: "11-core",
     slug: "11-core",
     title: "11 CORE",
-    subtitle: "Fitness & Lifestyle Brand · 2026",
+    subtitle: "Men Inner Wear Branding · 2026",
     image: "Portfolio/11_CORE/cover/cover.jpg",
   },
   {
@@ -19,14 +19,14 @@ const moreProjectsBase = [
     id: "orlo",
     slug: "orlo",
     title: "ORLO",
-    subtitle: "Branding · 2026",
+    subtitle: "Unisex Ornaments Branding · 2026",
     image: "Portfolio/ORLO/Cover/cover.jpg",
   },
   {
     id: "quoon",
     slug: "quoon",
     title: "QUOON",
-    subtitle: "Branding · 2026",
+    subtitle: "Personal Branding Amritha Rajan · 2026",
     image: "Portfolio/QUOON/Cover/cover.jpg",
   },
   {
